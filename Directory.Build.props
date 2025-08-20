@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    <WarningLevel>5</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Company>AI Agent Framework</Company>
+    <Product>AI Agent Framework</Product>
+    <Copyright>Copyright © 2025</Copyright>
+    <Version>0.1.0</Version>
+    <FileVersion>0.1.0</FileVersion>
+    <AssemblyVersion>0.1.0</AssemblyVersion>
+  </PropertyGroup>
+</Project>
