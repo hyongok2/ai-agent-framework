@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm update:*)",
+      "Bash(claude --version)",
+      "Bash(mkdir:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\mnt\\c\\src\\work\\ai\\ai-agent-framework\\docs"
+    ]
+  }
+}

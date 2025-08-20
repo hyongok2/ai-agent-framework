@@ -159,8 +159,8 @@ public interface ILlmRouter
 
 ### 8. Prompt Engine
 
-* 템플릿(`.hbs`) + 변수 바인딩 → 최종 문자열
-* SchemaRef 있는 경우 → “JSON only” directive 자동 삽입
+* 템플릿(`.liquid` 또는 `.scriban`) + 변수 바인딩 → 최종 문자열
+* SchemaRef 있는 경우 → "JSON only" directive 자동 삽입
 * Few-shot 예시 지원 (`samples/fewshots/…`)
 
 ```csharp
@@ -209,9 +209,9 @@ configs/model-profiles/
   secure.json
 
 samples/prompts/
-  plan/agent-plan.hbs
-  tool/suggest.hbs
-  extract/fields.hbs
+  plan/agent-plan.liquid
+  tool/suggest.liquid
+  extract/fields.liquid
 
 samples/fewshots/
   classify/colors.json
@@ -228,5 +228,5 @@ samples/fewshots/
 * [ ] OpenAI Adapter에서 최소 3 CallType 동작 (`ChatGenerate`, `ChatJSON`, `Plan`)
 * [ ] Claude Adapter에서 `ToolCallSuggest` + `ToolCallLoop` 구현
 * [ ] Ollama Adapter에서 `ChatGenerate` 구현
-* [ ] Prompt Engine에서 `.hbs` 템플릿 로딩 및 변수 치환 테스트 성공
+* [ ] Prompt Engine에서 `.liquid` 템플릿 로딩 및 변수 치환 테스트 성공
 * [ ] Schema Validator로 JSON 출력 강제 테스트 성공

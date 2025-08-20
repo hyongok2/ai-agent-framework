@@ -56,9 +56,10 @@ public interface IToolRegistry
 * **플러그인 (Plugin)**: DLL/Assembly 스캔 → `ITool` 구현체 자동 등록
 * **MCP 도구 (Model Context Protocol)**:
 
-  * MCP 서버에서 제공하는 `tool.list` 엔드포인트 호출
+  * MCP 서버에서 제공하는 `tool.list` 엔드포인트 호출 (HTTP/WebSocket 클라이언트 사용)
   * Descriptor 변환 후 등록
   * 실행 시 `tool.execute` RPC 호출
+  * C# 구현: `HttpClient` 또는 `ClientWebSocket`을 통한 JSON-RPC 통신
 
 ```csharp
 public interface IToolLoader
@@ -153,7 +154,7 @@ src/Agent.Tools.Core/
     EnvSecretResolver.cs
   Loader/
     PluginToolLoader.cs
-    McpToolLoader.cs
+    McpToolLoader.cs     // MCP는 HTTP/WebSocket 클라이언트로 구현
 
 configs/tools/
   math.defaults.json
