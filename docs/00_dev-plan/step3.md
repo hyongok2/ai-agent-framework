@@ -230,3 +230,235 @@ samples/fewshots/
 * [ ] Ollama Adapter에서 `ChatGenerate` 구현
 * [ ] Prompt Engine에서 `.liquid` 템플릿 로딩 및 변수 치환 테스트 성공
 * [ ] Schema Validator로 JSON 출력 강제 테스트 성공
+
+
+
+현재 프로젝트 구조를 분석해보니, 추상화 계층은 잘 구현되어 있지만 `step3.md`의 LLM 계층 구현에서 몇 가지 보강이 필요한 부분들이 있습니다.
+
+## 📋 LLM 계층 구현 보강 사항
+
+### 1. **구체적 구현체 작성 필요**
+
+#### OpenAI 클라이언트 구현
+```csharp
+// src/Agent.Llm.OpenAI/OpenAiClient.cs
+- OpenAI API 연동 구현
+- GPT-4, GPT-3.5 모델 지원
+- 함수 호출 지원
+- 스트리밍 응답 처리
+- 토큰 카운팅 및 비용 계산
+```
+
+#### Claude 클라이언트 구현
+```csharp
+// src/Agent.Llm.Claude/ClaudeClient.cs
+- Anthropic API 연동
+- Claude 3 모델 지원
+- 도구 사용 패턴 구현
+- 컨텍스트 윈도우 관리
+```
+
+#### Ollama 클라이언트 구현
+```csharp
+// src/Agent.Llm.Ollama/OllamaClient.cs
+- 로컬 Ollama API 연동
+- 모델 자동 탐색
+- 스트리밍 지원
+- 리소스 모니터링
+```
+
+### 2. **LLM Router 구현**
+
+```csharp
+// src/Agent.Llm.Core/Routing/DefaultLlmRouter.cs
+필요 기능:
+- CallType별 최적 모델 선택 로직
+- Capabilities 기반 fallback 처리
+- 비용 최적화 라우팅
+- 부하 분산 로직
+- 실패 시 재라우팅
+```
+
+### 3. **Prompt Engine 구현**
+
+```csharp
+// src/Agent.Llm.Core/Prompts/PromptEngine.cs
+필요 기능:
+- Liquid/Scriban 템플릿 엔진 통합
+- 변수 바인딩 및 검증
+- Few-shot 예제 자동 삽입
+- Schema 기반 JSON 지시문 추가
+- 프롬프트 최적화 (토큰 절약)
+- 다국어 프롬프트 지원
+```
+
+### 4. **Model Profile Manager**
+
+```csharp
+// src/Agent.Llm.Core/Profiles/ModelProfileManager.cs
+필요 기능:
+- JSON 프로필 파일 로딩
+- 프로필 검증 및 병합
+- 환경별 오버라이드
+- 동적 프로필 업데이트
+- 프로필 버전 관리
+```
+
+### 5. **CallType 핸들러**
+
+각 CallType별 전문 핸들러 구현:
+
+```csharp
+// src/Agent.Llm.Core/Handlers/
+- ChatGenerateHandler.cs
+- ChatJsonHandler.cs  
+- PlanGenerationHandler.cs
+- ToolCallSuggestHandler.cs
+- ToolCallLoopHandler.cs
+- ReasoningHandler.cs
+- VisionQAHandler.cs
+- EmbeddingHandler.cs
+```
+
+### 6. **스트리밍 처리 개선**
+
+```csharp
+// src/Agent.Llm.Core/Streaming/StreamProcessor.cs
+필요 기능:
+- 청크 버퍼링 및 재조립
+- JSON 부분 파싱
+- 함수 호출 스트림 처리
+- 에러 복구 메커니즘
+- 백프레셔 처리
+```
+
+### 7. **JSON Schema 통합**
+
+```csharp
+// src/Agent.Llm.Core/Schema/SchemaEnforcer.cs
+필요 기능:
+- LLM 응답 검증
+- 자동 수정 시도
+- Schema → TypeScript/Python 타입 변환
+- OpenAPI 스키마 호환성
+```
+
+### 8. **메트릭 및 모니터링**
+
+```csharp
+// src/Agent.Llm.Core/Monitoring/LlmMetricsCollector.cs
+필요 기능:
+- 토큰 사용량 추적
+- 응답 시간 측정
+- 에러율 모니터링
+- 비용 계산 및 예산 관리
+- 모델별 성능 비교
+```
+
+### 9. **캐싱 레이어**
+
+```csharp
+// src/Agent.Llm.Core/Caching/LlmCache.cs
+필요 기능:
+- 시맨틱 캐싱 (임베딩 기반)
+- 정확한 매칭 캐시
+- TTL 관리
+- 캐시 무효화 정책
+```
+
+### 10. **테스트 및 Mock**
+
+```csharp
+// src/Agent.Llm.Tests/
+필요 항목:
+- MockLlmClient (테스트용)
+- 각 CallType별 단위 테스트
+- 통합 테스트 시나리오
+- 성능 벤치마크
+- 스트리밍 테스트
+```
+
+### 11. **설정 파일 구조**
+
+```yaml
+# configs/model-profiles/fast.yaml
+profile: fast
+description: "빠른 응답용 소형 모델"
+providers:
+  - name: openai
+    model: gpt-4o-mini
+    priority: 1
+    settings:
+      temperature: 0.7
+      maxTokens: 512
+  - name: claude
+    model: claude-3-haiku
+    priority: 2
+fallback:
+  enabled: true
+  maxAttempts: 3
+```
+
+### 12. **프롬프트 템플릿 예제**
+
+```liquid
+# samples/prompts/plan/agent-plan.liquid
+{% if system_context %}
+System Context: {{ system_context }}
+{% endif %}
+
+Generate an execution plan for the following request:
+{{ user_request }}
+
+{% if constraints %}
+Constraints:
+{% for constraint in constraints %}
+- {{ constraint }}
+{% endfor %}
+{% endif %}
+
+Output Format: JSON following the schema {{ schema_ref }}
+```
+
+### 13. **오류 처리 및 재시도**
+
+```csharp
+// src/Agent.Llm.Core/Resilience/RetryPolicy.cs
+필요 기능:
+- 지수 백오프
+- 서킷 브레이커
+- 타임아웃 처리
+- 부분 실패 복구
+- 데드레터 큐
+```
+
+### 14. **보안 및 거버넌스**
+
+```csharp
+// src/Agent.Llm.Core/Security/
+- ContentFilter.cs (유해 콘텐츠 필터링)
+- PiiRedactor.cs (개인정보 마스킹)
+- RateLimiter.cs (속도 제한)
+- AuditLogger.cs (감사 로깅)
+```
+
+### 15. **문서화**
+
+```markdown
+필요 문서:
+- API 레퍼런스
+- 각 CallType 사용 가이드
+- 모델 선택 가이드
+- 프롬프트 엔지니어링 베스트 프랙티스
+- 비용 최적화 가이드
+- 트러블슈팅 가이드
+```
+
+이러한 구현 사항들을 단계적으로 진행하되, 우선순위는:
+1. **핵심 클라이언트 구현** (OpenAI, Claude, Ollama)
+2. **Router와 Prompt Engine**
+3. **CallType 핸들러**
+4. **스트리밍 및 캐싱**
+5. **모니터링 및 보안**
+
+순으로 진행하는 것을 추천합니다.
