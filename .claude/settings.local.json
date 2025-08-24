@@ -25,7 +25,8 @@
       "Read(/C:\\c\\src\\work\\ai\\ai-agent-framework\\src\\Agent.Core.Abstractions/**)",
       "Read(/C:\\c\\src\\work\\ai\\ai-agent-framework\\src\\Agent.Core.Abstractions/**)",
       "Read(/C:\\c\\src\\work\\ai\\ai-agent-framework\\src\\Agent.Core.Abstractions/**)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(dotnet add:*)"
     ],
     "deny": [],
     "ask": [],
