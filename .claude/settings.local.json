@@ -11,12 +11,28 @@
       "Bash(touch:*)",
       "Bash(dotnet restore:*)",
       "Bash(dotnet build)",
-      "Bash(dotnet test)"
+      "Bash(dotnet test)",
+      "Bash(dotnet test:*)",
+      "Bash(del \"C:\\src\\work\\ai\\ai-agent-framework\\src\\Agent.Core.Abstractions\\Common\\Identifiers.cs\")",
+      "Bash(mv:*)",
+      "Bash(del \"C:\\src\\work\\ai\\ai-agent-framework\\src\\Agent.Core.Abstractions\\Common\\Exceptions.cs\")",
+      "Read(/c:\\src\\work\\ai\\ai-agent-framework\\src\\Agent.Core.Abstractions\\Streaming/**)",
+      "Read(/c:\\src\\work\\ai\\ai-agent-framework\\src/**)",
+      "mcp__ide__getDiagnostics",
+      "Bash(git ls-tree:*)",
+      "Bash(dotnet build:*)",
+      "Read(/c:\\src\\work\\ai\\ai-agent-framework\\src\\Agent.Core.Abstractions\\Llm\\Models\\Core/**)",
+      "Read(/C:\\c\\src\\work\\ai\\ai-agent-framework\\src\\Agent.Core.Abstractions/**)",
+      "Read(/C:\\c\\src\\work\\ai\\ai-agent-framework\\src\\Agent.Core.Abstractions/**)",
+      "Read(/C:\\c\\src\\work\\ai\\ai-agent-framework\\src\\Agent.Core.Abstractions/**)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": [],
     "additionalDirectories": [
-      "C:\\mnt\\c\\src\\work\\ai\\ai-agent-framework\\docs"
+      "C:\\mnt\\c\\src\\work\\ai\\ai-agent-framework\\docs",
+      "C:\\c\\src\\work\\ai\\ai-agent-framework\\src\\Agent.Core.Abstractions",
+      "C:\\c\\src\\work\\ai"
     ]
   }
 }
