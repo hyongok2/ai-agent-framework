@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using Agent.Abstractions.Core.Common.Identifiers;
 using Agent.Abstractions.Orchestration.Configuration;
+using Agent.Abstractions.Orchestration.Core;
 using Agent.Abstractions.Orchestration.Execution;
 
 namespace Agent.Abstractions.Orchestration.Plans;
@@ -11,7 +12,7 @@ namespace Agent.Abstractions.Orchestration.Plans;
 /// <summary>
 /// Plan을 구성하는 빌더
 /// </summary>
-public class PlanBuilder
+public class PlanBuilder : IPlanBuilder
 {
     private readonly List<ExecutionStep> _steps = new();
     private string _id = Guid.NewGuid().ToString();
@@ -21,37 +22,37 @@ public class PlanBuilder
     private readonly Dictionary<string, object> _context = new();
     private PlanSettings _settings = new();
     
-    public PlanBuilder WithId(string id)
+    public IPlanBuilder WithId(string id)
     {
         _id = id;
         return this;
     }
     
-    public PlanBuilder WithType(OrchestrationType type)
+    public IPlanBuilder WithType(OrchestrationType type)
     {
         _type = type;
         return this;
     }
     
-    public PlanBuilder WithName(string name)
+    public IPlanBuilder WithName(string name)
     {
         _name = name;
         return this;
     }
     
-    public PlanBuilder WithDescription(string description)
+    public IPlanBuilder WithDescription(string description)
     {
         _description = description;
         return this;
     }
     
-    public PlanBuilder AddStep(ExecutionStep step)
+    public IPlanBuilder AddStep(ExecutionStep executionStep)
     {
-        _steps.Add(step);
+        _steps.Add(executionStep);
         return this;
     }
     
-    public PlanBuilder AddLlmStep(string prompt, StepId? dependsOn = null)
+    public IPlanBuilder AddLlmStep(string prompt, StepId? dependsOn = null)
     {
         var step = new ExecutionStep
         {
@@ -64,7 +65,7 @@ public class PlanBuilder
         return AddStep(step);
     }
     
-    public PlanBuilder AddToolStep(string toolName, JsonDocument arguments, StepId? dependsOn = null)
+    public IPlanBuilder AddToolStep(string toolName, JsonDocument arguments, StepId? dependsOn = null)
     {
         var step = new ExecutionStep
         {
@@ -77,7 +78,7 @@ public class PlanBuilder
         return AddStep(step);
     }
     
-    public PlanBuilder AddParallelSteps(params Action<PlanBuilder>[] stepBuilders)
+    public IPlanBuilder AddParallelSteps(params Action<IPlanBuilder>[] stepBuilders)
     {
         var parallelSteps = new List<ExecutionStep>();
         
@@ -98,13 +99,13 @@ public class PlanBuilder
         return AddStep(parallelStep);
     }
     
-    public PlanBuilder WithContext(string key, object value)
+    public IPlanBuilder WithContext(string key, object value)
     {
         _context[key] = value;
         return this;
     }
     
-    public PlanBuilder WithSettings(Action<PlanSettings> configure)
+    public IPlanBuilder WithSettings(Action<PlanSettings> configure)
     {
         var newSettings = _settings with { };
         configure(newSettings);
@@ -133,4 +134,5 @@ public class PlanBuilder
         
         return plan;
     }
+    
 }

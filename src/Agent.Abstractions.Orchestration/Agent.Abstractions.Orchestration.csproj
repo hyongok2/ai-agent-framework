@@ -2,6 +2,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Agent.Abstractions.Core\Agent.Abstractions.Core.csproj" />
+    <ProjectReference Include="..\Agent.Abstractions.Tools\Agent.Abstractions.Tools.csproj" />
+    <ProjectReference Include="..\Agent.Abstractions.LLM\Agent.Abstractions.LLM.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
