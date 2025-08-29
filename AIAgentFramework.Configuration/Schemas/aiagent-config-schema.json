@@ -1,0 +1,348 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Agent Framework Configuration Schema",
+  "type": "object",
+  "properties": {
+    "Application": {
+      "type": "object",
+      "properties": {
+        "Name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "Version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-\\w+)?$"
+        },
+        "Environment": {
+          "type": "string",
+          "enum": ["Development", "Testing", "Staging", "Production"]
+        },
+        "InstanceId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["Name", "Version", "Environment"],
+      "additionalProperties": false
+    },
+    "LLM": {
+      "type": "object",
+      "properties": {
+        "DefaultProvider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "Models": {
+          "type": "object",
+          "properties": {
+            "planner": { "type": "string", "minLength": 1 },
+            "interpreter": { "type": "string", "minLength": 1 },
+            "summarizer": { "type": "string", "minLength": 1 },
+            "generator": { "type": "string", "minLength": 1 },
+            "evaluator": { "type": "string", "minLength": 1 },
+            "rewriter": { "type": "string", "minLength": 1 },
+            "explainer": { "type": "string", "minLength": 1 },
+            "reasoner": { "type": "string", "minLength": 1 },
+            "converter": { "type": "string", "minLength": 1 },
+            "visualizer": { "type": "string", "minLength": 1 },
+            "tool_parameter_setter": { "type": "string", "minLength": 1 },
+            "dialogue_manager": { "type": "string", "minLength": 1 },
+            "knowledge_retriever": { "type": "string", "minLength": 1 },
+            "meta_manager": { "type": "string", "minLength": 1 }
+          },
+          "required": [
+            "planner", "interpreter", "summarizer", "generator", "evaluator",
+            "rewriter", "explainer", "reasoner", "converter", "visualizer",
+            "tool_parameter_setter", "dialogue_manager", "knowledge_retriever", "meta_manager"
+          ],
+          "additionalProperties": true
+        },
+        "Providers": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z][a-zA-Z0-9_]*$": {
+              "type": "object",
+              "properties": {
+                "ApiKey": { "type": "string" },
+                "Endpoint": { "type": "string", "format": "uri" },
+                "OrganizationId": { "type": "string" },
+                "MaxRetries": { "type": "integer", "minimum": 0 },
+                "TimeoutSeconds": { "type": "integer", "minimum": 1 }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "DefaultParameters": {
+          "type": "object",
+          "properties": {
+            "MaxTokens": { "type": "integer", "minimum": 1 },
+            "Temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+            "TopP": { "type": "number", "minimum": 0, "maximum": 1 },
+            "FrequencyPenalty": { "type": "number", "minimum": -2, "maximum": 2 },
+            "PresencePenalty": { "type": "number", "minimum": -2, "maximum": 2 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["DefaultProvider", "Models"],
+      "additionalProperties": false
+    },
+    "Tools": {
+      "type": "object",
+      "properties": {
+        "PluginDirectory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ExecutionTimeoutSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "MaxConcurrentExecutions": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "MCPEndpoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Name": { "type": "string", "minLength": 1 },
+              "Endpoint": { "type": "string", "format": "uri" },
+              "AuthToken": { "type": "string" },
+              "ConnectionTimeoutSeconds": { "type": "integer", "minimum": 1 },
+              "Enabled": { "type": "boolean" }
+            },
+            "required": ["Name", "Endpoint"],
+            "additionalProperties": false
+          }
+        },
+        "BuiltInTools": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z][a-zA-Z0-9_]*$": {
+              "type": "object",
+              "properties": {
+                "Enabled": { "type": "boolean" },
+                "Settings": { "type": "object" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "Cache": {
+          "type": "object",
+          "properties": {
+            "Enabled": { "type": "boolean" },
+            "DefaultTTLMinutes": { "type": "integer", "minimum": 1 },
+            "MaxSizeMB": { "type": "integer", "minimum": 1 },
+            "ToolSpecificTTL": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-zA-Z][a-zA-Z0-9_]*$": { "type": "integer", "minimum": 1 }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["PluginDirectory"],
+      "additionalProperties": false
+    },
+    "Prompts": {
+      "type": "object",
+      "properties": {
+        "TemplateDirectory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "CacheTTLMinutes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "CacheEnabled": {
+          "type": "boolean"
+        },
+        "FileExtension": {
+          "type": "string",
+          "pattern": "^\\.[a-zA-Z0-9]+$"
+        },
+        "DefaultSystemInfo": {
+          "type": "object",
+          "properties": {
+            "SystemName": { "type": "string", "minLength": 1 },
+            "Version": { "type": "string", "minLength": 1 },
+            "TimeFormat": { "type": "string", "minLength": 1 },
+            "TimeZone": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        },
+        "CommonVariables": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z][a-zA-Z0-9_]*$": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "RoleConfigurations": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z][a-zA-Z0-9_]*$": {
+              "type": "object",
+              "properties": {
+                "FileName": { "type": "string" },
+                "CacheTTLMinutes": { "type": "integer", "minimum": 1 },
+                "SpecificVariables": {
+                  "type": "object",
+                  "patternProperties": {
+                    "^[a-zA-Z][a-zA-Z0-9_]*$": { "type": "string" }
+                  },
+                  "additionalProperties": false
+                },
+                "RequiredVariables": {
+                  "type": "array",
+                  "items": { "type": "string", "minLength": 1 }
+                },
+                "ValidateResponseFormat": { "type": "boolean" },
+                "ExpectedResponseSchema": { "type": "string" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["TemplateDirectory"],
+      "additionalProperties": false
+    },
+    "UI": {
+      "type": "object",
+      "properties": {
+        "EnabledInterfaces": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["web", "console", "api", "application"]
+          }
+        },
+        "Web": {
+          "type": "object",
+          "properties": {
+            "Port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+            "UseHttps": { "type": "boolean" },
+            "AllowedOrigins": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "StaticFilesPath": { "type": "string" },
+            "SessionTimeoutMinutes": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": false
+        },
+        "Console": {
+          "type": "object",
+          "properties": {
+            "InteractiveMode": { "type": "boolean" },
+            "BatchMode": { "type": "boolean" },
+            "LogLevel": {
+              "type": "string",
+              "enum": ["Trace", "Debug", "Information", "Warning", "Error", "Critical", "None"]
+            },
+            "OutputFormat": {
+              "type": "string",
+              "enum": ["json", "text", "table"]
+            },
+            "UseColors": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        },
+        "API": {
+          "type": "object",
+          "properties": {
+            "Version": { "type": "string", "pattern": "^v\\d+$" },
+            "AuthenticationEnabled": { "type": "boolean" },
+            "ApiKeyHeader": { "type": "string", "minLength": 1 },
+            "RateLimitPerMinute": { "type": "integer", "minimum": 1 },
+            "SwaggerEnabled": { "type": "boolean" },
+            "CompressionEnabled": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        },
+        "Common": {
+          "type": "object",
+          "properties": {
+            "DefaultLanguage": { "type": "string", "minLength": 2, "maxLength": 5 },
+            "SupportedLanguages": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 2, "maxLength": 5 }
+            },
+            "Theme": { "type": "string", "minLength": 1 },
+            "DebugMode": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "Orchestration": {
+      "type": "object",
+      "properties": {
+        "MaxExecutionSteps": { "type": "integer", "minimum": 1 },
+        "ExecutionTimeoutMinutes": { "type": "integer", "minimum": 1 },
+        "SessionExpirationHours": { "type": "integer", "minimum": 1 },
+        "MaxConcurrentSessions": { "type": "integer", "minimum": 1 },
+        "HistoryRetentionDays": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "Logging": {
+      "type": "object",
+      "properties": {
+        "LogLevel": {
+          "type": "string",
+          "enum": ["Trace", "Debug", "Information", "Warning", "Error", "Critical", "None"]
+        },
+        "LogFilePath": { "type": "string" },
+        "StructuredLogging": { "type": "boolean" },
+        "PerformanceLogging": { "type": "boolean" },
+        "RetentionDays": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "Security": {
+      "type": "object",
+      "properties": {
+        "EncryptApiKeys": { "type": "boolean" },
+        "MaskSensitiveData": { "type": "boolean" },
+        "AuditLogging": { "type": "boolean" },
+        "AllowedIPs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "anyOf": [
+              { "format": "ipv4" },
+              { "format": "ipv6" },
+              { "pattern": "^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}/\\d{1,2}$" }
+            ]
+          }
+        },
+        "RequireHttps": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "ConnectionStrings": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z][a-zA-Z0-9_]*$": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["Application", "LLM", "Tools", "Prompts"],
+  "additionalProperties": false
+}

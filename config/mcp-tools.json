@@ -1,0 +1,38 @@
+{
+  "tools": [
+    {
+      "name": "web_search",
+      "description": "웹 검색을 수행하는 MCP 도구",
+      "serverUrl": "http://localhost:3000/mcp",
+      "transportType": "Http",
+      "headers": {
+        "Authorization": "Bearer your-api-key",
+        "Content-Type": "application/json"
+      },
+      "timeoutSeconds": 30,
+      "inputSchema": "{\"type\":\"object\",\"properties\":{\"query\":{\"type\":\"string\"}},\"required\":[\"query\"]}",
+      "outputSchema": "{\"type\":\"object\",\"properties\":{\"results\":{\"type\":\"array\"}}}"
+    },
+    {
+      "name": "file_processor",
+      "description": "파일 처리를 수행하는 MCP 도구",
+      "serverUrl": "ws://localhost:3001/mcp",
+      "transportType": "WebSocket",
+      "timeoutSeconds": 60,
+      "inputSchema": "{\"type\":\"object\",\"properties\":{\"filePath\":{\"type\":\"string\"},\"operation\":{\"type\":\"string\"}},\"required\":[\"filePath\",\"operation\"]}",
+      "outputSchema": "{\"type\":\"object\",\"properties\":{\"result\":{\"type\":\"string\"},\"success\":{\"type\":\"boolean\"}}}"
+    },
+    {
+      "name": "database_query",
+      "description": "데이터베이스 쿼리를 실행하는 MCP 도구",
+      "serverUrl": "http://localhost:3002/mcp",
+      "transportType": "Http",
+      "headers": {
+        "X-API-Key": "your-db-api-key"
+      },
+      "timeoutSeconds": 45,
+      "inputSchema": "{\"type\":\"object\",\"properties\":{\"query\":{\"type\":\"string\"},\"database\":{\"type\":\"string\"}},\"required\":[\"query\"]}",
+      "outputSchema": "{\"type\":\"object\",\"properties\":{\"rows\":{\"type\":\"array\"},\"rowCount\":{\"type\":\"number\"}}}"
+    }
+  ]
+}
