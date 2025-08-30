@@ -11,11 +11,13 @@ namespace AIAgentFramework.Orchestration;
 public class OrchestrationEngine : IOrchestrationEngine
 {
     private readonly IRegistry _registry;
+    private readonly IActionFactory _actionFactory;
     private readonly ILogger<OrchestrationEngine> _logger;
 
-    public OrchestrationEngine(IRegistry registry, ILogger<OrchestrationEngine> logger)
+    public OrchestrationEngine(IRegistry registry, IActionFactory actionFactory, ILogger<OrchestrationEngine> logger)
     {
         _registry = registry ?? throw new ArgumentNullException(nameof(registry));
+        _actionFactory = actionFactory ?? throw new ArgumentNullException(nameof(actionFactory));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -125,7 +127,7 @@ public class OrchestrationEngine : IOrchestrationEngine
         {
             if (actionsData is List<Dictionary<string, object>> actionDictList)
             {
-                actions = ActionFactory.CreateActionsFromJsonArray(actionDictList);
+                actions = _actionFactory.CreateActionsFromJsonArray(actionDictList);
             }
             else
             {

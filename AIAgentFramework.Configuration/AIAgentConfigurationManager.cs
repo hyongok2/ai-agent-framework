@@ -1,4 +1,6 @@
 using AIAgentFramework.Configuration.Models;
+using AIAgentFramework.Configuration.Interfaces;
+using AIAgentFramework.Configuration.Cache;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Memory;
@@ -9,11 +11,13 @@ namespace AIAgentFramework.Configuration;
 /// <summary>
 /// AI 에이전트 설정 관리자
 /// </summary>
-public class AIAgentConfigurationManager : IAIAgentConfigurationManager
+public class AIAgentConfigurationManager : IAIAgentConfigurationManager, IConfigurationCache
 {
     private readonly IConfiguration _configuration;
     private readonly IMemoryCache _cache;
     private readonly ILogger<AIAgentConfigurationManager> _logger;
+    private readonly ILoggerFactory _loggerFactory;
+    private readonly ConfigurationCache _configurationCache;
     private readonly string _environment;
     private AIAgentConfiguration? _cachedConfiguration;
     private DateTime _lastLoadTime;
@@ -24,15 +28,20 @@ public class AIAgentConfigurationManager : IAIAgentConfigurationManager
     /// </summary>
     /// <param name="configuration">설정</param>
     /// <param name="cache">메모리 캐시</param>
-    /// <param name="logger">로거</param>
+    /// <param name="loggerFactory">로거 팩토리</param>
     public AIAgentConfigurationManager(
         IConfiguration configuration,
         IMemoryCache cache,
-        ILogger<AIAgentConfigurationManager> logger)
+        ILoggerFactory loggerFactory)
     {
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+        _logger = loggerFactory.CreateLogger<AIAgentConfigurationManager>();
+        
+        // ConfigurationCache용 로거 생성
+        var cacheLogger = loggerFactory.CreateLogger<ConfigurationCache>();
+        _configurationCache = new ConfigurationCache(cache, cacheLogger);
         _environment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
     }
 
@@ -49,6 +58,7 @@ public class AIAgentConfigurationManager : IAIAgentConfigurationManager
         var config = LoadConfiguration();
         
         _cache.Set(cacheKey, config, _cacheExpiration);
+        _configurationCache.TrackKey(cacheKey);
         _cachedConfiguration = config;
         _lastLoadTime = DateTime.UtcNow;
         
@@ -70,6 +80,7 @@ public class AIAgentConfigurationManager : IAIAgentConfigurationManager
         var section = _configuration.GetSection(sectionName).Get<T>() ?? new T();
         
         _cache.Set(cacheKey, section, _cacheExpiration);
+        _configurationCache.TrackKey(cacheKey);
         
         _logger.LogDebug("Configuration section '{SectionName}' loaded", sectionName);
         
@@ -79,14 +90,10 @@ public class AIAgentConfigurationManager : IAIAgentConfigurationManager
     /// <inheritdoc />
     public void ReloadConfiguration()
     {
-        _logger.LogInformation("Reloading configuration...");
+        _logger.LogInformation("Configuration 다시 로딩 중...");
         
-        // 캐시 클리어
-        if (_cache is MemoryCache memoryCache)
-        {
-            // MemoryCache에는 Clear 메서드가 없으므로 새로운 인스턴스로 교체하거나 개별 키를 제거해야 함
-            // 여기서는 캐시 만료 시간을 0으로 설정하여 무효화
-        }
+        // 타입 안전한 캐시 무효화 구현
+        _configurationCache.InvalidateAll();
         
         // 설정 다시 로드
         if (_configuration is IConfigurationRoot configRoot)
@@ -96,7 +103,7 @@ public class AIAgentConfigurationManager : IAIAgentConfigurationManager
         
         _cachedConfiguration = null;
         
-        _logger.LogInformation("Configuration reloaded successfully");
+        _logger.LogInformation("Configuration 다시 로딩 완료");
     }
 
     /// <inheritdoc />
@@ -161,9 +168,8 @@ public class AIAgentConfigurationManager : IAIAgentConfigurationManager
     {
         _configuration[key] = value?.ToString();
         
-        // 관련 캐시 무효화
-        var cacheKey = $"configuration_{_environment}";
-        _cache.Remove(cacheKey);
+        // 관련 캐시 무효화 - 패턴 기반으로 관련된 모든 캐시 제거
+        _configurationCache.Invalidate($"*{_environment}*");
         
         _logger.LogDebug("Configuration value set: {Key} = {Value}", key, value);
     }
@@ -226,4 +232,50 @@ public class AIAgentConfigurationManager : IAIAgentConfigurationManager
         
         _logger.LogDebug("Environment-specific overrides applied for: {Environment}", _environment);
     }
+
+    #region IConfigurationCache Implementation
+
+    /// <inheritdoc />
+    public void Invalidate(string? keyPattern = null)
+    {
+        _configurationCache.Invalidate(keyPattern);
+    }
+
+    /// <inheritdoc />
+    public void InvalidateAll()
+    {
+        _configurationCache.InvalidateAll();
+    }
+
+    /// <inheritdoc />
+    public Task WarmupAsync(IEnumerable<string> keys)
+    {
+        return _configurationCache.WarmupAsync(keys);
+    }
+
+    /// <inheritdoc />
+    public CacheStatistics GetStatistics()
+    {
+        return _configurationCache.GetStatistics();
+    }
+
+    /// <inheritdoc />
+    public bool ContainsKey(string key)
+    {
+        return _configurationCache.ContainsKey(key);
+    }
+
+    /// <inheritdoc />
+    public bool RemoveKey(string key)
+    {
+        return _configurationCache.RemoveKey(key);
+    }
+
+    /// <inheritdoc />
+    public IReadOnlySet<string> GetCachedKeys()
+    {
+        return _configurationCache.GetCachedKeys();
+    }
+
+    #endregion
 }

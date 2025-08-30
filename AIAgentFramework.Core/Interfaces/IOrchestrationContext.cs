@@ -44,4 +44,10 @@ public interface IOrchestrationContext
     /// 완료 시간
     /// </summary>
     DateTime? CompletedAt { get; set; }
+    
+    /// <summary>
+    /// 실행 단계 추가
+    /// </summary>
+    /// <param name="step">실행 단계</param>
+    void AddExecutionStep(IExecutionStep step);
 }

@@ -24,10 +24,18 @@ public static class ServiceCollectionExtensions
         // 컴포넌트 발견 유틸리티 등록
         services.AddSingleton<AIAgentFramework.Registry.Utils.IComponentDiscovery, AIAgentFramework.Registry.Utils.ComponentDiscovery>();
         
-        // Registry 등록
+        // 기존 Registry 등록 (호환성 유지)
         services.AddSingleton<IRegistry, Registry>();
         services.AddSingleton<IAdvancedRegistry, Registry>();
         services.AddSingleton<IAttributeBasedComponentRegistrar, AttributeBasedComponentRegistrar>();
+        
+        // 새로운 타입 안전한 Registry 등록
+        services.AddSingleton<ILLMFunctionRegistry, AIAgentFramework.Core.Registry.TypedLLMFunctionRegistry>();
+        services.AddSingleton<IToolRegistry, AIAgentFramework.Core.Registry.TypedToolRegistry>();
+        
+        // 타입 안전한 컨텍스트 및 팩토리 서비스 등록 (Core 레벨)
+        services.AddScoped<AIAgentFramework.Core.Interfaces.IExecutionContextFactory, AIAgentFramework.Core.Context.ExecutionContextFactory>();
+        services.AddScoped<AIAgentFramework.Core.Interfaces.IActionFactory, AIAgentFramework.Core.Factories.ActionFactory>();
         
         return services;
     }

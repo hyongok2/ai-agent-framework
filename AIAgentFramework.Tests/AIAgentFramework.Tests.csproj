@@ -16,6 +16,7 @@
     <ProjectReference Include="..\AIAgentFramework.Registry\AIAgentFramework.Registry.csproj" />
     <ProjectReference Include="..\AIAgentFramework.Configuration\AIAgentFramework.Configuration.csproj" />
     <ProjectReference Include="..\AIAgentFramework.Orchestration\AIAgentFramework.Orchestration.csproj" />
+    <ProjectReference Include="..\AIAgentFramework.State\AIAgentFramework.State.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,8 +1,10 @@
 using AIAgentFramework.Core.Interfaces;
 using AIAgentFramework.LLM.Factories;
+using AIAgentFramework.LLM.Interfaces;
 using AIAgentFramework.LLM.Providers;
 using AIAgentFramework.LLM.Prompts;
 using AIAgentFramework.LLM.Parsing;
+using AIAgentFramework.LLM.TokenManagement;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -40,6 +42,9 @@ public static class ServiceCollectionExtensions
             client.DefaultRequestHeaders.Add("User-Agent", "AIAgentFramework/1.0");
         });
 
+        // 토큰 카운터 등록
+        services.AddSingleton<ITokenCounter, TiktokenCounter>();
+        
         // LLM Provider Factory 등록
         services.AddSingleton<ILLMProviderFactory, LLMProviderFactory>();
 
@@ -121,9 +126,10 @@ public static class ServiceCollectionExtensions
         {
             var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
             var logger = provider.GetRequiredService<ILogger<ClaudeProvider>>();
+            var tokenCounter = provider.GetRequiredService<ITokenCounter>();
             var httpClient = httpClientFactory.CreateClient("Claude");
 
-            return new ClaudeProvider(httpClient, logger, apiKey, baseUrl);
+            return new ClaudeProvider(httpClient, logger, tokenCounter, apiKey, baseUrl);
         });
 
         return services;
@@ -191,11 +197,13 @@ public static class ServiceCollectionExtensions
             {
                 var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
                 var logger = provider.GetRequiredService<ILogger<ClaudeProvider>>();
+                var tokenCounter = provider.GetRequiredService<ITokenCounter>();
                 var httpClient = httpClientFactory.CreateClient("Claude");
 
                 return new ClaudeProvider(
                     httpClient, 
                     logger, 
+                    tokenCounter,
                     claudeSection["ApiKey"]!, 
                     claudeSection["BaseUrl"]);
             });

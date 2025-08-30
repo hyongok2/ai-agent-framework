@@ -1,8 +1,11 @@
 using NUnit.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using AIAgentFramework.LLM.Factories;
+using AIAgentFramework.LLM.Interfaces;
 using AIAgentFramework.LLM.Providers;
+using AIAgentFramework.LLM.TokenManagement;
 using AIAgentFramework.Core.Interfaces;
 using System.Collections.Generic;
 
@@ -38,7 +41,15 @@ public class LLMProviderIntegrationTests
 
         _httpClientFactory = new TestHttpClientFactory();
         _loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-        _factory = new LLMProviderFactory(_configuration, _httpClientFactory, _loggerFactory);
+        var serviceCollection = new ServiceCollection();
+        serviceCollection.AddSingleton<IConfiguration>(_configuration);
+        serviceCollection.AddSingleton(_httpClientFactory);
+        serviceCollection.AddSingleton(_loggerFactory);
+        serviceCollection.AddLogging(builder => builder.AddConsole());
+        serviceCollection.AddSingleton<ITokenCounter, TiktokenCounter>();
+        var serviceProvider = serviceCollection.BuildServiceProvider();
+        
+        _factory = new LLMProviderFactory(_configuration, _httpClientFactory, _loggerFactory, serviceProvider);
     }
 
     [Test]

@@ -30,4 +30,11 @@ public class OrchestrationContext : IOrchestrationContext
     
     /// <inheritdoc />
     public DateTime? CompletedAt { get; set; }
+    
+    /// <inheritdoc />
+    public void AddExecutionStep(IExecutionStep step)
+    {
+        ArgumentNullException.ThrowIfNull(step);
+        ExecutionHistory.Add(step);
+    }
 }

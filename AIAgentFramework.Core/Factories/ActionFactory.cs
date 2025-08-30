@@ -7,7 +7,7 @@ namespace AIAgentFramework.Core.Factories;
 /// <summary>
 /// 타입 안전한 액션 생성을 위한 팩토리
 /// </summary>
-public class ActionFactory
+public class ActionFactory : IActionFactory
 {
     /// <summary>
     /// LLM 액션 생성
@@ -15,7 +15,7 @@ public class ActionFactory
     /// <param name="functionName">LLM 기능 이름</param>
     /// <param name="parameters">매개변수</param>
     /// <returns>LLM 액션</returns>
-    public static IOrchestrationAction CreateLLMAction(string functionName, Dictionary<string, object>? parameters = null)
+    public IOrchestrationAction CreateLLMAction(string functionName, Dictionary<string, object>? parameters = null)
     {
         return new LLMAction(functionName, parameters);
     }
@@ -26,7 +26,7 @@ public class ActionFactory
     /// <param name="toolName">도구 이름</param>
     /// <param name="parameters">매개변수</param>
     /// <returns>도구 액션</returns>
-    public static IOrchestrationAction CreateToolAction(string toolName, Dictionary<string, object>? parameters = null)
+    public IOrchestrationAction CreateToolAction(string toolName, Dictionary<string, object>? parameters = null)
     {
         return new ToolAction(toolName, parameters);
     }
@@ -37,7 +37,7 @@ public class ActionFactory
     /// <param name="actionData">액션 데이터 (JSON 파싱 결과)</param>
     /// <returns>생성된 액션</returns>
     /// <exception cref="ArgumentException">잘못된 액션 데이터</exception>
-    public static IOrchestrationAction CreateFromJsonObject(Dictionary<string, object> actionData)
+    public IOrchestrationAction CreateFromJsonObject(Dictionary<string, object> actionData)
     {
         if (!actionData.TryGetValue("type", out var typeValue))
         {
@@ -71,7 +71,7 @@ public class ActionFactory
     /// </summary>
     /// <param name="actionsData">액션 데이터 배열</param>
     /// <returns>생성된 액션 목록</returns>
-    public static List<IOrchestrationAction> CreateActionsFromJsonArray(List<Dictionary<string, object>> actionsData)
+    public List<IOrchestrationAction> CreateActionsFromJsonArray(List<Dictionary<string, object>> actionsData)
     {
         var actions = new List<IOrchestrationAction>();
         
@@ -91,7 +91,7 @@ public class ActionFactory
         return actions;
     }
     
-    private static IOrchestrationAction CreateLLMActionFromData(Dictionary<string, object> actionData, Dictionary<string, object> parameters)
+    private IOrchestrationAction CreateLLMActionFromData(Dictionary<string, object> actionData, Dictionary<string, object> parameters)
     {
         if (!actionData.TryGetValue("function_name", out var functionNameValue) &&
             !actionData.TryGetValue("name", out functionNameValue))
@@ -108,7 +108,7 @@ public class ActionFactory
         return CreateLLMAction(functionName, parameters);
     }
     
-    private static IOrchestrationAction CreateToolActionFromData(Dictionary<string, object> actionData, Dictionary<string, object> parameters)
+    private IOrchestrationAction CreateToolActionFromData(Dictionary<string, object> actionData, Dictionary<string, object> parameters)
     {
         if (!actionData.TryGetValue("tool_name", out var toolNameValue) &&
             !actionData.TryGetValue("name", out toolNameValue))

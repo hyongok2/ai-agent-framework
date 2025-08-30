@@ -1,4 +1,5 @@
 using AIAgentFramework.Core.Interfaces;
+using AIAgentFramework.Registry.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AIAgentFramework.Orchestration;
@@ -13,7 +14,14 @@ public static class OrchestrationServiceExtensions
     /// </summary>
     public static IServiceCollection AddOrchestration(this IServiceCollection services)
     {
+        // 기존 오케스트레이션 엔진
         services.AddSingleton<IOrchestrationEngine, OrchestrationEngine>();
+        
+        // 타입 안전한 오케스트레이션 엔진 추가
+        services.AddScoped<TypeSafeOrchestrationEngine>();
+        
+        // Registry 시스템 등록 (타입 안전한 Registry 포함)
+        services.AddRegistry();
         
         // 의존성 추가
         services.AddSingleton<IRegistry, AIAgentFramework.Registry.Registry>();

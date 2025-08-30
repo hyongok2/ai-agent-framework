@@ -1,4 +1,5 @@
 using AIAgentFramework.Core.Interfaces;
+using AIAgentFramework.LLM.Interfaces;
 using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Text.Json;
@@ -13,19 +14,22 @@ public class ClaudeProvider : LLMProviderBase
 {
     private readonly string _apiKey;
     private readonly string _baseUrl;
+    private readonly ITokenCounter _tokenCounter;
 
     /// <summary>
     /// 생성자
     /// </summary>
     /// <param name="httpClient">HTTP 클라이언트</param>
     /// <param name="logger">로거</param>
+    /// <param name="tokenCounter">토큰 카운터</param>
     /// <param name="apiKey">API 키</param>
     /// <param name="baseUrl">기본 URL</param>
-    public ClaudeProvider(HttpClient httpClient, ILogger<ClaudeProvider> logger, string apiKey, string? baseUrl = null)
+    public ClaudeProvider(HttpClient httpClient, ILogger<ClaudeProvider> logger, ITokenCounter tokenCounter, string apiKey, string? baseUrl = null)
         : base(httpClient, logger)
     {
         _apiKey = apiKey ?? throw new ArgumentNullException(nameof(apiKey));
         _baseUrl = baseUrl ?? "https://api.anthropic.com/v1";
+        _tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
         
         ConfigureHttpClient();
     }
@@ -59,6 +63,10 @@ public class ClaudeProvider : LLMProviderBase
 
         try
         {
+            // 토큰 사용량 예상 (향후 토큰 예산 관리에서 활용)
+            var estimatedInputTokens = await CountTokensAsync(prompt, model);
+            _logger.LogDebug("예상 입력 토큰: {InputTokens}, 모델: {Model}", estimatedInputTokens, model);
+
             var requestBody = new
             {
                 model = model,
@@ -97,6 +105,13 @@ public class ClaudeProvider : LLMProviderBase
 
             var textContent = contentArray[0].GetProperty("text").GetString();
 
+            // 실제 출력 토큰 계산 (응답 분석)
+            if (!string.IsNullOrEmpty(textContent))
+            {
+                var actualOutputTokens = await CountTokensAsync(textContent, model);
+                _logger.LogDebug("실제 출력 토큰: {OutputTokens}, 모델: {Model}", actualOutputTokens, model);
+            }
+
             _logger.LogDebug("Generated text using model {Model}: {Length} characters", model, textContent?.Length ?? 0);
 
             return textContent ?? string.Empty;
@@ -113,6 +128,10 @@ public class ClaudeProvider : LLMProviderBase
     {
         if (string.IsNullOrWhiteSpace(prompt))
             throw new ArgumentException("Prompt cannot be null or empty", nameof(prompt));
+
+        // 토큰 사용량 예상
+        var estimatedInputTokens = await CountTokensAsync(prompt, DefaultModel);
+        _logger.LogDebug("스트리밍 예상 입력 토큰: {InputTokens}, 모델: {Model}", estimatedInputTokens, DefaultModel);
 
         var requestBody = new
         {
@@ -146,7 +165,9 @@ public class ClaudeProvider : LLMProviderBase
         using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         using var reader = new StreamReader(stream);
 
+        var streamedContent = new StringBuilder();
         string? line;
+        
         while ((line = await reader.ReadLineAsync()) != null)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -157,7 +178,24 @@ public class ClaudeProvider : LLMProviderBase
                 var data = line.Substring(6);
                 
                 if (data == "[DONE]")
+                {
+                    // 스트리밍 완료 시 총 출력 토큰 계산
+                    var totalStreamedContent = streamedContent.ToString();
+                    if (!string.IsNullOrEmpty(totalStreamedContent))
+                    {
+                        try
+                        {
+                            var actualOutputTokens = await CountTokensAsync(totalStreamedContent, DefaultModel);
+                            _logger.LogDebug("스트리밍 완료 - 실제 출력 토큰: {OutputTokens}, 모델: {Model}", 
+                                actualOutputTokens, DefaultModel);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "스트리밍 완료 후 토큰 계산 실패");
+                        }
+                    }
                     yield break;
+                }
 
                 JsonElement jsonElement;
                 try
@@ -179,6 +217,7 @@ public class ClaudeProvider : LLMProviderBase
                         var chunk = textElement.GetString();
                         if (!string.IsNullOrEmpty(chunk))
                         {
+                            streamedContent.Append(chunk);
                             yield return chunk;
                         }
                     }
@@ -227,9 +266,26 @@ public class ClaudeProvider : LLMProviderBase
     /// <inheritdoc />
     public override async Task<int> CountTokensAsync(string text, string? model = null)
     {
-        // Claude의 경우 실제 토큰 계산 API를 사용할 수 있지만,
-        // 여기서는 간단한 추정을 사용
-        return await Task.FromResult(EstimateTokenCount(text));
+        if (string.IsNullOrWhiteSpace(text))
+            return 0;
+
+        var targetModel = model ?? DefaultModel;
+        
+        if (!_tokenCounter.IsModelSupported(targetModel))
+        {
+            _logger.LogWarning("지원되지 않는 모델, 기본 추정 사용: {Model}", targetModel);
+            return await Task.FromResult(EstimateTokenCount(text));
+        }
+
+        try
+        {
+            return await _tokenCounter.CountTokensAsync(text, targetModel);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "토큰 카운팅 실패, 기본 추정 사용: {Model}", targetModel);
+            return await Task.FromResult(EstimateTokenCount(text));
+        }
     }
 
     /// <summary>

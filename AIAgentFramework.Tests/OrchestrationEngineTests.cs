@@ -17,7 +17,8 @@ public class OrchestrationEngineTests
     {
         _mockRegistry = new Mock<IRegistry>();
         _mockLogger = new Mock<ILogger<OrchestrationEngine>>();
-        _orchestrationEngine = new OrchestrationEngine(_mockRegistry.Object, _mockLogger.Object);
+        var mockActionFactory = new Mock<AIAgentFramework.Core.Interfaces.IActionFactory>();
+        _orchestrationEngine = new OrchestrationEngine(_mockRegistry.Object, mockActionFactory.Object, _mockLogger.Object);
     }
 
     [Test]

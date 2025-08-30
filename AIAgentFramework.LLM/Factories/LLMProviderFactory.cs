@@ -1,6 +1,8 @@
 using AIAgentFramework.Core.Interfaces;
+using AIAgentFramework.LLM.Interfaces;
 using AIAgentFramework.LLM.Providers;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace AIAgentFramework.LLM.Factories;
@@ -13,6 +15,7 @@ public class LLMProviderFactory : ILLMProviderFactory
     private readonly IConfiguration _configuration;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly IServiceProvider _serviceProvider;
     private readonly Dictionary<string, Func<ILLMProvider>> _providerFactories;
 
     /// <summary>
@@ -21,14 +24,17 @@ public class LLMProviderFactory : ILLMProviderFactory
     /// <param name="configuration">설정</param>
     /// <param name="httpClientFactory">HTTP 클라이언트 팩토리</param>
     /// <param name="loggerFactory">로거 팩토리</param>
+    /// <param name="serviceProvider">서비스 프로바이더</param>
     public LLMProviderFactory(
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        IServiceProvider serviceProvider)
     {
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
         _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 
         _providerFactories = new Dictionary<string, Func<ILLMProvider>>(StringComparer.OrdinalIgnoreCase)
         {
@@ -142,8 +148,9 @@ public class LLMProviderFactory : ILLMProviderFactory
         var baseUrl = _configuration["LLM:Claude:BaseUrl"];
         var httpClient = _httpClientFactory.CreateClient("Claude");
         var logger = _loggerFactory.CreateLogger<ClaudeProvider>();
+        var tokenCounter = _serviceProvider.GetRequiredService<ITokenCounter>();
 
-        return new ClaudeProvider(httpClient, logger, apiKey, baseUrl);
+        return new ClaudeProvider(httpClient, logger, tokenCounter, apiKey, baseUrl);
     }
 
     /// <summary>
