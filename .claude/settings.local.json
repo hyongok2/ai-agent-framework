@@ -19,7 +19,11 @@
       "Bash(powershell:*)",
       "Bash(dotnet sln:*)",
       "Bash(dotnet build)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(dotnet new:*)",
+      "Bash(rename:*)",
+      "Bash(move E2EWorkflowIntegrationTests.cs E2EWorkflowIntegrationTests.cs.bak)",
+      "Bash(move E2EWorkflowIntegrationTests.cs.bak E2EWorkflowIntegrationTests.cs)"
     ],
     "deny": [],
     "ask": []

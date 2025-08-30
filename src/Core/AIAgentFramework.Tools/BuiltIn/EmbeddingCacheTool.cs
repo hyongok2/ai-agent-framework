@@ -3,6 +3,8 @@ using AIAgentFramework.Core.Interfaces;
 using AIAgentFramework.Core.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using System.Collections;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -202,16 +204,16 @@ public class EmbeddingCacheTool : ToolBase
         // 캐시에서 모든 항목을 검색 (실제 구현에서는 더 효율적인 방법 사용)
         // 이는 데모용 구현이며, 실제로는 벡터 데이터베이스를 사용해야 함
         var cacheField = typeof(MemoryCache).GetField("_coherentState", 
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            BindingFlags.NonPublic | BindingFlags.Instance);
         
         if (cacheField?.GetValue(_cache) is object coherentState)
         {
             var entriesCollection = coherentState.GetType()
-                .GetProperty("EntriesCollection", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                .GetProperty("EntriesCollection", BindingFlags.NonPublic | BindingFlags.Instance);
             
-            if (entriesCollection?.GetValue(coherentState) is System.Collections.IDictionary entries)
+            if (entriesCollection?.GetValue(coherentState) is IDictionary entries)
             {
-                foreach (System.Collections.DictionaryEntry entry in entries)
+                foreach (DictionaryEntry entry in entries)
                 {
                     if (entry.Value?.GetType().GetProperty("Value")?.GetValue(entry.Value) is EmbeddingCacheEntry cacheEntry)
                     {
