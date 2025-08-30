@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AIAgentFramework.Core\AIAgentFramework.Core.csproj" />
-    <ProjectReference Include="..\AIAgentFramework.Orchestration\AIAgentFramework.Orchestration.csproj" />
-    <ProjectReference Include="..\AIAgentFramework.Registry\AIAgentFramework.Registry.csproj" />
+    <ProjectReference Include="..\..\Core\AIAgentFramework.Core\AIAgentFramework.Core.csproj" />
+    <ProjectReference Include="..\..\Core\AIAgentFramework.Orchestration\AIAgentFramework.Orchestration.csproj" />
+    <ProjectReference Include="..\..\Core\AIAgentFramework.Registry\AIAgentFramework.Registry.csproj" />
   </ItemGroup>
 
   <ItemGroup>

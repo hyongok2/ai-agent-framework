@@ -11,7 +11,7 @@
     <ProjectReference Include="..\AIAgentFramework.LLM\AIAgentFramework.LLM.csproj" />
     <ProjectReference Include="..\AIAgentFramework.Tools\AIAgentFramework.Tools.csproj" />
     <ProjectReference Include="..\AIAgentFramework.Registry\AIAgentFramework.Registry.csproj" />
-    <ProjectReference Include="..\AIAgentFramework.State\AIAgentFramework.State.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\AIAgentFramework.State\AIAgentFramework.State.csproj" />
   </ItemGroup>
 
   <ItemGroup>
