@@ -17,7 +17,9 @@
       "Bash(xcopy:*)",
       "Bash(tree:*)",
       "Bash(powershell:*)",
-      "Bash(dotnet sln:*)"
+      "Bash(dotnet sln:*)",
+      "Bash(dotnet build)",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "ask": []
