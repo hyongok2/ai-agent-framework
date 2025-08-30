@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet test:*)",
+      "Bash(dotnet build)",
+      "Bash(del \"C:\\src\\work\\ai\\ai-agent-framework\\AIAgentFramework.LLM\\Class1.cs\")",
+      "Bash(rm:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(find:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

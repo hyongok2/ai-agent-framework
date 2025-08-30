@@ -16,6 +16,7 @@ public class MCPToolAdapter : IMCPTool
 
     public string Name { get; }
     public string Description { get; }
+    public string Category { get; } = "MCP";
     public IToolContract Contract { get; }
     public MCPConnectionInfo ConnectionInfo { get; }
     public MCPToolMetadata Metadata => _metadata ?? throw new InvalidOperationException("연결되지 않은 상태입니다.");

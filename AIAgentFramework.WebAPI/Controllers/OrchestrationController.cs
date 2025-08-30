@@ -9,10 +9,12 @@ namespace AIAgentFramework.WebAPI.Controllers;
 public class OrchestrationController : ControllerBase
 {
     private readonly IOrchestrationEngine _orchestrationEngine;
+    private readonly IRegistry _registry;
 
-    public OrchestrationController(IOrchestrationEngine orchestrationEngine)
+    public OrchestrationController(IOrchestrationEngine orchestrationEngine, IRegistry registry)
     {
         _orchestrationEngine = orchestrationEngine ?? throw new ArgumentNullException(nameof(orchestrationEngine));
+        _registry = registry ?? throw new ArgumentNullException(nameof(registry));
     }
 
     [HttpPost("execute")]
@@ -40,7 +42,7 @@ public class OrchestrationController : ControllerBase
             return BadRequest("세션 ID가 필요합니다.");
         }
 
-        var context = new OrchestrationContext(request.SessionId, request.UserRequest ?? "");
+        var context = new OrchestrationContext(request.SessionId, request.UserRequest ?? "", _registry);
         var result = await _orchestrationEngine.ContinueAsync(context);
         return Ok(result);
     }

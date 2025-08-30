@@ -1,3 +1,4 @@
+using AIAgentFramework.Core.Interfaces;
 using AIAgentFramework.Orchestration.Context;
 using AIAgentFramework.Orchestration;
 using Microsoft.Extensions.Logging;
@@ -9,13 +10,15 @@ namespace AIAgentFramework.Tests;
 public class ContextManagerTests
 {
     private Mock<ILogger<ContextManager>> _mockLogger;
+    private Mock<IRegistry> _mockRegistry;
     private ContextManager _contextManager;
 
     [SetUp]
     public void Setup()
     {
         _mockLogger = new Mock<ILogger<ContextManager>>();
-        _contextManager = new ContextManager(_mockLogger.Object);
+        _mockRegistry = new Mock<IRegistry>();
+        _contextManager = new ContextManager(_mockLogger.Object, _mockRegistry.Object);
     }
 
     [Test]

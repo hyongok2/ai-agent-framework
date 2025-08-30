@@ -15,6 +15,11 @@ public static class OrchestrationServiceExtensions
     {
         services.AddSingleton<IOrchestrationEngine, OrchestrationEngine>();
         
+        // 의존성 추가
+        services.AddSingleton<IRegistry, AIAgentFramework.Registry.Registry>();
+        services.AddSingleton<ILLMProviderFactory, AIAgentFramework.LLM.Factories.LLMProviderFactory>();
+        services.AddHttpClient();
+        
         return services;
     }
 }

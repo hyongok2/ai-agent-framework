@@ -14,6 +14,9 @@ public class OrchestrationContext : IOrchestrationContext
     public IUserRequest OriginalRequest { get; set; } = null!;
     
     /// <inheritdoc />
+    public string UserRequest => OriginalRequest?.Content ?? "";
+    
+    /// <inheritdoc />
     public List<IExecutionStep> ExecutionHistory { get; set; } = new();
     
     /// <inheritdoc />

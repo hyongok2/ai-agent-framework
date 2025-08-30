@@ -26,6 +26,9 @@ public abstract class ToolBase : ITool
 
     /// <inheritdoc />
     public abstract string Description { get; }
+    
+    /// <inheritdoc />
+    public virtual string Category { get; } = "General";
 
     /// <inheritdoc />
     public abstract IToolContract Contract { get; }

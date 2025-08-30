@@ -1,5 +1,6 @@
 using AIAgentFramework.Core.Interfaces;
 using AIAgentFramework.Core.Models;
+using AIAgentFramework.Core.Factories;
 using Microsoft.Extensions.Logging;
 
 namespace AIAgentFramework.Orchestration;
@@ -30,7 +31,7 @@ public class OrchestrationEngine : IOrchestrationEngine
     /// </summary>
     public async Task<IOrchestrationContext> ExecuteAsync(string userRequest, CancellationToken cancellationToken = default)
     {
-        var context = new OrchestrationContext(userRequest);
+        var context = new OrchestrationContext(userRequest, _registry);
         
         try
         {
@@ -116,8 +117,27 @@ public class OrchestrationEngine : IOrchestrationEngine
         if (!context.SharedData.ContainsKey("plan_actions"))
             return;
 
-        var actions = context.SharedData["plan_actions"] as List<object>;
-        if (actions == null) return;
+        var actionsData = context.SharedData["plan_actions"];
+        
+        // JSON 배열에서 타입 안전한 액션으로 변환
+        List<IOrchestrationAction> actions;
+        try
+        {
+            if (actionsData is List<Dictionary<string, object>> actionDictList)
+            {
+                actions = ActionFactory.CreateActionsFromJsonArray(actionDictList);
+            }
+            else
+            {
+                _logger.LogWarning("Invalid action data format in plan_actions");
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to parse actions from plan_actions");
+            return;
+        }
 
         foreach (var action in actions)
         {
@@ -127,80 +147,48 @@ public class OrchestrationEngine : IOrchestrationEngine
         }
     }
 
-    private async Task ExecuteActionAsync(OrchestrationContext context, object action, CancellationToken cancellationToken)
+    private async Task ExecuteActionAsync(OrchestrationContext context, IOrchestrationAction action, CancellationToken cancellationToken)
     {
-        // 액션 타입에 따른 실행 분기
-        var actionType = GetActionType(action);
-        
         var step = new ExecutionStep
         {
-            StepType = actionType,
-            Description = $"액션 실행: {actionType}",
-            Input = action.ToString() ?? "",
+            StepType = action.Type.ToString(),
+            Description = $"액션 실행: {action.Name}",
+            Input = action.Name,
             StartTime = DateTime.UtcNow
         };
 
         try
         {
-            if (actionType.StartsWith("llm_"))
-            {
-                await ExecuteLLMActionAsync(context, action, step, cancellationToken);
-            }
-            else if (actionType.StartsWith("tool_"))
-            {
-                await ExecuteToolActionAsync(context, action, step, cancellationToken);
-            }
+            _logger.LogDebug("액션 실행 시작: {ActionName} (타입: {ActionType})", action.Name, action.Type);
             
-            step.Success = true;
+            var result = await action.ExecuteAsync(context, cancellationToken);
+            
+            step.Success = result.IsSuccess;
+            step.Output = result.Data?.ToString() ?? "";
+            step.ExecutionTime = result.ExecutionTime;
             step.EndTime = DateTime.UtcNow;
+            
+            if (!result.IsSuccess)
+            {
+                step.ErrorMessage = result.ErrorMessage;
+                _logger.LogWarning("액션 실행 실패: {ActionName} - {ErrorMessage}", action.Name, result.ErrorMessage);
+            }
+            else
+            {
+                _logger.LogDebug("액션 실행 성공: {ActionName}", action.Name);
+            }
         }
         catch (Exception ex)
         {
             step.Success = false;
             step.ErrorMessage = ex.Message;
             step.EndTime = DateTime.UtcNow;
-            _logger.LogError(ex, "액션 실행 실패: {ActionType}", actionType);
+            _logger.LogError(ex, "액션 실행 중 예외 발생: {ActionName}", action.Name);
         }
         
         context.AddExecutionStep(step);
     }
 
-    private async Task ExecuteLLMActionAsync(OrchestrationContext context, object action, ExecutionStep step, CancellationToken cancellationToken)
-    {
-        var functionName = ExtractFunctionName(action);
-        var llmFunction = _registry.GetLLMFunction(functionName);
-        
-        if (llmFunction == null)
-        {
-            throw new InvalidOperationException($"LLM 기능을 찾을 수 없습니다: {functionName}");
-        }
-
-        var llmContext = new LLMContext
-        {
-            ExecutionHistory = context.ExecutionHistory,
-            SharedData = context.SharedData
-        };
-        
-        var result = await llmFunction.ExecuteAsync(llmContext, cancellationToken);
-        step.Output = result.Content;
-        step.ExecutionTime = result.ExecutionTime;
-    }
-
-    private async Task ExecuteToolActionAsync(OrchestrationContext context, object action, ExecutionStep step, CancellationToken cancellationToken)
-    {
-        var toolName = ExtractToolName(action);
-        var tool = _registry.GetTool(toolName);
-        
-        if (tool == null)
-        {
-            throw new InvalidOperationException($"도구를 찾을 수 없습니다: {toolName}");
-        }
-
-        var toolInput = new ToolInput();
-        var result = await tool.ExecuteAsync(toolInput, cancellationToken);
-        step.Output = result.Data?.ToString() ?? "";
-        step.ExecutionTime = result.ExecutionTime;
-    }
 
     private async Task CheckCompletionAsync(OrchestrationContext context, CancellationToken cancellationToken)
     {
@@ -216,19 +204,4 @@ public class OrchestrationEngine : IOrchestrationEngine
         await Task.CompletedTask;
     }
 
-    private static string GetActionType(object action)
-    {
-        // 액션 객체에서 타입 추출
-        return action.ToString()?.Split('_')[0] ?? "unknown";
-    }
-
-    private static string ExtractFunctionName(object action)
-    {
-        return action.ToString() ?? "";
-    }
-
-    private static string ExtractToolName(object action)
-    {
-        return action.ToString() ?? "";
-    }
 }

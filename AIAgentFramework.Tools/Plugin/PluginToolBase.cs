@@ -28,6 +28,9 @@ public abstract class PluginToolBase : IPluginTool
 
     /// <inheritdoc />
     public abstract string Description { get; }
+    
+    /// <inheritdoc />
+    public virtual string Category { get; } = "Plugin";
 
     /// <inheritdoc />
     public abstract string Version { get; }

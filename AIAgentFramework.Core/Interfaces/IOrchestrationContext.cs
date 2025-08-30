@@ -16,6 +16,11 @@ public interface IOrchestrationContext
     IUserRequest OriginalRequest { get; }
     
     /// <summary>
+    /// 사용자 요청 텍스트
+    /// </summary>
+    string UserRequest { get; }
+    
+    /// <summary>
     /// 실행 이력
     /// </summary>
     List<IExecutionStep> ExecutionHistory { get; }

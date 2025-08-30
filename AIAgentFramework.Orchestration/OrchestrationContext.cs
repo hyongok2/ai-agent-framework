@@ -5,7 +5,7 @@ namespace AIAgentFramework.Orchestration;
 /// <summary>
 /// 오케스트레이션 컨텍스트 구현
 /// </summary>
-public class OrchestrationContext : IOrchestrationContext
+public class OrchestrationContext : IOrchestrationContext, IExecutionContext
 {
     /// <inheritdoc />
     public string SessionId { get; }
@@ -35,6 +35,9 @@ public class OrchestrationContext : IOrchestrationContext
     public Dictionary<string, object> SharedData { get; }
 
     /// <inheritdoc />
+    public IRegistry Registry { get; }
+
+    /// <inheritdoc />
     public DateTime StartTime { get; }
 
     /// <inheritdoc />
@@ -47,10 +50,12 @@ public class OrchestrationContext : IOrchestrationContext
     /// 생성자
     /// </summary>
     /// <param name="userRequest">사용자 요청</param>
-    public OrchestrationContext(string userRequest)
+    /// <param name="registry">레지스트리</param>
+    public OrchestrationContext(string userRequest, IRegistry registry)
     {
         SessionId = Guid.NewGuid().ToString();
         UserRequest = userRequest ?? throw new ArgumentNullException(nameof(userRequest));
+        Registry = registry ?? throw new ArgumentNullException(nameof(registry));
         OriginalRequest = new UserRequest { Content = userRequest };
         IsCompleted = false;
         ExecutionHistory = new List<IExecutionStep>();
@@ -63,10 +68,12 @@ public class OrchestrationContext : IOrchestrationContext
     /// </summary>
     /// <param name="sessionId">세션 ID</param>
     /// <param name="userRequest">사용자 요청</param>
-    public OrchestrationContext(string sessionId, string userRequest)
+    /// <param name="registry">레지스트리</param>
+    public OrchestrationContext(string sessionId, string userRequest, IRegistry registry)
     {
         SessionId = sessionId ?? throw new ArgumentNullException(nameof(sessionId));
         UserRequest = userRequest ?? throw new ArgumentNullException(nameof(userRequest));
+        Registry = registry ?? throw new ArgumentNullException(nameof(registry));
         OriginalRequest = new UserRequest { Content = userRequest };
         IsCompleted = false;
         ExecutionHistory = new List<IExecutionStep>();

@@ -16,6 +16,11 @@ public interface ITool
     string Description { get; }
     
     /// <summary>
+    /// 카테고리
+    /// </summary>
+    string Category { get; }
+    
+    /// <summary>
     /// 도구 계약 (입출력 스키마)
     /// </summary>
     IToolContract Contract { get; }

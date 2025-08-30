@@ -8,15 +8,17 @@ public class ContextManager
 {
     private readonly ConcurrentDictionary<string, IOrchestrationContext> _contexts = new();
     private readonly ILogger<ContextManager> _logger;
+    private readonly IRegistry _registry;
 
-    public ContextManager(ILogger<ContextManager> logger)
+    public ContextManager(ILogger<ContextManager> logger, IRegistry registry)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _registry = registry ?? throw new ArgumentNullException(nameof(registry));
     }
 
     public IOrchestrationContext CreateContext(string userRequest)
     {
-        var context = new OrchestrationContext(userRequest);
+        var context = new OrchestrationContext(userRequest, _registry);
         _contexts[context.SessionId] = context;
         return context;
     }

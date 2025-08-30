@@ -36,6 +36,8 @@ public class ClaudeProvider : LLMProviderBase
     /// <inheritdoc />
     public override IReadOnlyList<string> SupportedModels => new[]
     {
+        "claude-3-5-sonnet-20241022",
+        "claude-3-5-haiku-20241022", 
         "claude-3-opus-20240229",
         "claude-3-sonnet-20240229",
         "claude-3-haiku-20240307",
@@ -44,7 +46,7 @@ public class ClaudeProvider : LLMProviderBase
     };
 
     /// <inheritdoc />
-    public override string DefaultModel => "claude-3-sonnet-20240229";
+    public override string DefaultModel => "claude-3-5-sonnet-20241022";
 
     /// <inheritdoc />
     public override async Task<string> GenerateAsync(string prompt, string model, CancellationToken cancellationToken = default)
@@ -245,5 +247,6 @@ public class ClaudeProvider : LLMProviderBase
         base.SetRequestHeaders(request);
         request.Headers.Add("x-api-key", _apiKey);
         request.Headers.Add("anthropic-version", "2023-06-01");
+        request.Headers.Add("anthropic-beta", "messages-2023-12-15");
     }
 }
