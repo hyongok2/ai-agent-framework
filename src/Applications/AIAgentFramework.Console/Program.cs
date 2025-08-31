@@ -1,4 +1,5 @@
-﻿using AIAgentFramework.Core.Interfaces;
+﻿
+using AIAgentFramework.Core.Orchestration.Abstractions;
 using AIAgentFramework.Orchestration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

@@ -1,4 +1,7 @@
-using AIAgentFramework.Core.Interfaces;
+
+using AIAgentFramework.Core.Infrastructure;
+using AIAgentFramework.Core.LLM.Abstractions;
+using AIAgentFramework.Core.Orchestration.Abstractions;
 using AIAgentFramework.Registry.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,8 +27,8 @@ public static class OrchestrationServiceExtensions
         services.AddRegistry();
         
         // 의존성 추가
-        services.AddSingleton<IRegistry, AIAgentFramework.Registry.Registry>();
-        services.AddSingleton<ILLMProviderFactory, AIAgentFramework.LLM.Factories.LLMProviderFactory>();
+        services.AddSingleton<IRegistry, Registry.Registry>();
+        services.AddSingleton<ILLMProviderFactory, LLM.Factories.LLMProviderFactory>();
         services.AddHttpClient();
         
         return services;

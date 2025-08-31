@@ -1,5 +1,8 @@
-using AIAgentFramework.Core.Interfaces;
-using AIAgentFramework.Core.Models;
+
+
+
+using AIAgentFramework.Core.Tools.Abstractions;
+using AIAgentFramework.Core.Tools.Models;
 
 namespace AIAgentFramework.Tools.Execution;
 

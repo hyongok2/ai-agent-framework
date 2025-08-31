@@ -2,9 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using AIAgentFramework.Core.Interfaces;
-using AIAgentFramework.Core.Models;
-using AIAgentFramework.Core.Factories;
+using AIAgentFramework.Core.Actions.Abstractions;
+using AIAgentFramework.Core.Actions.Factories;
+
+using AIAgentFramework.Core.LLM.Abstractions;
+using AIAgentFramework.Core.LLM.Models;
+using AIAgentFramework.Core.Orchestration.Abstractions;
+using AIAgentFramework.Core.Orchestration.Execution;
+using AIAgentFramework.Core.Tools.Abstractions;
+using AIAgentFramework.Core.User;
 using AIAgentFramework.Orchestration.Completion;
 using Microsoft.Extensions.Logging;
 

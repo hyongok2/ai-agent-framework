@@ -1,4 +1,9 @@
-using AIAgentFramework.Core.Interfaces;
+using AIAgentFramework.Core.Actions.Factories;
+using AIAgentFramework.Core.Infrastructure;
+using AIAgentFramework.Core.LLM.Abstractions;
+using AIAgentFramework.Core.Orchestration.Abstractions;
+using AIAgentFramework.Core.Tools.Abstractions;
+using AIAgentFramework.Core.Tools.Models;
 using AIAgentFramework.LLM.Interfaces;
 using AIAgentFramework.Orchestration;
 using AIAgentFramework.State.Interfaces;
@@ -48,12 +53,12 @@ public class E2EWorkflowIntegrationTests : IDisposable
         // Tool Mock 설정
         _mockTool.Setup(x => x.Name).Returns("MockTool");
         _mockTool.Setup(x => x.Description).Returns("Mock tool for testing");
-        _mockTool.Setup(x => x.Contract).Returns(new AIAgentFramework.Core.Models.ToolContract());
+        _mockTool.Setup(x => x.Contract).Returns(new ToolContract());
         _mockTool.Setup(x => x.ValidateAsync(It.IsAny<IToolInput>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
         _mockTool.Setup(x => x.ExecuteAsync(It.IsAny<IToolInput>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((IToolInput input, CancellationToken _) => 
-                    AIAgentFramework.Core.Models.ToolResult.CreateSuccess());
+                    ToolResult.CreateSuccess());
 
         // Registry Mock 설정 - 현재 인터페이스에 맞춰 간단히 설정
         mockLLMRegistry.Setup(x => x.Resolve(It.IsAny<string>())).Returns((ILLMFunction)null!);

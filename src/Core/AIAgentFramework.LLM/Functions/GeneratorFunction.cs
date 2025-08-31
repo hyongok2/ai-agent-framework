@@ -1,6 +1,10 @@
-using AIAgentFramework.Core.Interfaces;
-using AIAgentFramework.Core.Models;
-using AIAgentFramework.Core.Attributes;
+
+
+using AIAgentFramework.Core.Infrastructure;
+using AIAgentFramework.Core.LLM.Abstractions;
+using AIAgentFramework.Core.LLM.Attributes;
+using AIAgentFramework.Core.LLM.Models;
+
 using Microsoft.Extensions.Logging;
 
 namespace AIAgentFramework.LLM.Functions;

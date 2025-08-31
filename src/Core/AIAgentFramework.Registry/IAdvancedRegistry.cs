@@ -1,4 +1,7 @@
-using AIAgentFramework.Core.Interfaces;
+
+using AIAgentFramework.Core.Infrastructure;
+using AIAgentFramework.Core.LLM.Abstractions;
+using AIAgentFramework.Core.Tools.Abstractions;
 using AIAgentFramework.Registry.Models;
 using System.Reflection;
 

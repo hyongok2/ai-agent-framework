@@ -1,4 +1,4 @@
-using AIAgentFramework.Core.Interfaces;
+using AIAgentFramework.Core.LLM.Abstractions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 

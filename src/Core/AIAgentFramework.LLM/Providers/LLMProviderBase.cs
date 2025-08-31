@@ -1,4 +1,5 @@
-using AIAgentFramework.Core.Interfaces;
+
+using AIAgentFramework.Core.LLM.Abstractions;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 

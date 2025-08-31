@@ -1,4 +1,11 @@
-using AIAgentFramework.Core.Interfaces;
+
+using AIAgentFramework.Core.Actions.Factories;
+using AIAgentFramework.Core.Infrastructure;
+using AIAgentFramework.Core.LLM.Abstractions;
+using AIAgentFramework.Core.LLM.Registry;
+using AIAgentFramework.Core.Orchestration.Execution;
+using AIAgentFramework.Core.Tools.Abstractions;
+using AIAgentFramework.Core.Tools.Registry;
 using AIAgentFramework.Registry.AttributeBasedRegistration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -30,12 +37,12 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IAttributeBasedComponentRegistrar, AttributeBasedComponentRegistrar>();
         
         // 새로운 타입 안전한 Registry 등록
-        services.AddSingleton<ILLMFunctionRegistry, AIAgentFramework.Core.Registry.TypedLLMFunctionRegistry>();
-        services.AddSingleton<IToolRegistry, AIAgentFramework.Core.Registry.TypedToolRegistry>();
+        services.AddSingleton<ILLMFunctionRegistry, TypedLLMFunctionRegistry>();
+        services.AddSingleton<IToolRegistry, TypedToolRegistry>();
         
         // 타입 안전한 컨텍스트 및 팩토리 서비스 등록 (Core 레벨)
-        services.AddScoped<AIAgentFramework.Core.Interfaces.IExecutionContextFactory, AIAgentFramework.Core.Context.ExecutionContextFactory>();
-        services.AddScoped<AIAgentFramework.Core.Interfaces.IActionFactory, AIAgentFramework.Core.Factories.ActionFactory>();
+        services.AddScoped<IExecutionContextFactory, ExecutionContextFactory>();
+        services.AddScoped<IActionFactory, ActionFactory>();
         
         return services;
     }

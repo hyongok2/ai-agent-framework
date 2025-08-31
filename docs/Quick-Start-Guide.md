@@ -34,7 +34,7 @@ dotnet add package AIAgentFramework.Registry   # 타입 안전 레지스트리
 ### Program.cs (콘솔 애플리케이션)
 
 ```csharp
-using AIAgentFramework.Core.Interfaces;
+
 using AIAgentFramework.LLM.Interfaces;
 using AIAgentFramework.Monitoring.Extensions;
 using AIAgentFramework.State.Extensions;

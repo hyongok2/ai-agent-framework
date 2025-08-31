@@ -87,6 +87,141 @@
 4. **명확한 네이밍**: 폴더명으로 역할 명확히 표현
 5. **Base 클래스 분리**: 추상 클래스는 Base 폴더에 격리
 
+### Core 프로젝트 새 폴더 구조 (2024-12-26)
+
+**설계 원칙**: Bounded Context 기반 도메인 주도 설계(DDD)
+
+```
+AIAgentFramework.Core/
+│
+├── Actions/                    [액션 실행 도메인]
+│   ├── Abstractions/
+│   │   ├── IOrchestrationAction.cs
+│   │   ├── IPlannedAction.cs
+│   │   └── OrchestrationActionBase.cs
+│   ├── Models/
+│   │   ├── ActionResult.cs
+│   │   ├── ActionType.cs
+│   │   └── PlannedAction.cs
+│   ├── Implementations/
+│   │   ├── LLMAction.cs
+│   │   └── ToolAction.cs
+│   └── Factories/
+│       ├── IActionFactory.cs
+│       └── ActionFactory.cs
+│
+├── Orchestration/              [오케스트레이션 도메인]
+│   ├── Abstractions/
+│   │   ├── IOrchestrationEngine.cs
+│   │   ├── IOrchestrationStrategy.cs
+│   │   ├── IOrchestrationContext.cs
+│   │   ├── IOrchestrationResult.cs
+│   │   └── IOrchestrationObserver.cs
+│   ├── Models/
+│   │   ├── OrchestrationContext.cs
+│   │   └── OrchestrationResult.cs
+│   └── Execution/
+│       ├── IExecutionContext.cs
+│       ├── IExecutionContextFactory.cs
+│       ├── IExecutionResult.cs
+│       ├── IExecutionStep.cs
+│       ├── ExecutionContextFactory.cs
+│       └── ExecutionStep.cs
+│
+├── LLM/                        [LLM 도메인]
+│   ├── Abstractions/
+│   │   ├── ILLMProvider.cs
+│   │   ├── ILLMFunction.cs
+│   │   ├── ILLMContext.cs
+│   │   ├── ILLMResult.cs
+│   │   └── ILLMSystem.cs
+│   ├── Models/
+│   │   ├── LLMContext.cs
+│   │   └── LLMResult.cs
+│   ├── Registry/
+│   │   ├── ILLMFunctionRegistry.cs
+│   │   └── TypedLLMFunctionRegistry.cs
+│   ├── Factories/
+│   │   └── ILLMProviderFactory.cs
+│   ├── Parsing/
+│   │   └── ILLMResponseParser.cs
+│   └── Attributes/
+│       └── LLMFunctionAttribute.cs
+│
+├── Tools/                      [도구 도메인]
+│   ├── Abstractions/
+│   │   ├── ITool.cs
+│   │   ├── IToolSystem.cs
+│   │   └── ToolBase.cs
+│   ├── Contracts/
+│   │   ├── IToolContract.cs
+│   │   ├── IToolInput.cs
+│   │   └── IToolResult.cs
+│   ├── Models/
+│   │   ├── ToolContract.cs
+│   │   ├── ToolInput.cs
+│   │   └── ToolResult.cs
+│   ├── Registry/
+│   │   ├── IToolRegistry.cs
+│   │   └── TypedToolRegistry.cs
+│   ├── Attributes/
+│   │   ├── BuiltInToolAttribute.cs
+│   │   ├── MCPToolAttribute.cs
+│   │   └── PluginToolAttribute.cs
+│   ├── Plugins/
+│   │   ├── IPluginTool.cs
+│   │   └── PluginManifest.cs
+│   └── MCP/
+│       └── IMCPTool.cs
+│
+├── Validation/                 [검증 도메인]
+│   ├── Abstractions/
+│   │   ├── IValidator.cs
+│   │   ├── IValidatable.cs
+│   │   └── IValidationResult.cs
+│   └── Models/
+│       └── ValidationResult.cs
+│
+├── Resilience/                 [복원력 도메인]
+│   ├── Abstractions/
+│   │   └── IResiliencePolicy.cs
+│   ├── Policies/
+│   │   ├── CircuitBreaker.cs
+│   │   └── RetryPolicy.cs
+│   └── ResiliencePipeline.cs
+│
+├── Infrastructure/             [인프라 관심사]
+│   ├── Configuration/
+│   │   └── IConfigurationManager.cs
+│   ├── Registry/
+│   │   └── IRegistry.cs
+│   ├── Commands/
+│   │   └── ICommand.cs
+│   └── Prompts/
+│       └── IPromptManager.cs
+│
+├── Exceptions/                 [예외 처리]
+│   ├── AIAgentFrameworkException.cs
+│   ├── LLMException.cs
+│   ├── OrchestrationException.cs
+│   ├── ToolException.cs
+│   └── ValidationException.cs
+│
+├── User/                       [사용자 인터페이스]
+│   ├── IUserRequest.cs
+│   └── UserRequest.cs
+│
+└── Extensions/                 [확장 메서드]
+    ├── ServiceCollectionExtensions.cs
+    └── StringExtensions.cs
+```
+
+#### 마이그레이션 전략
+1. 폴더 구조 생성 (빈 폴더)
+2. 파일 하나씩 이동 → 즉시 빌드 → 네임스페이스 수정
+3. 각 단계마다 전체 솔루션 빌드 확인
+4. 모든 참조 프로젝트 네임스페이스 업데이트
+
 ## 📝 Task Management 가이드
 
 ### Task 관리 원칙

@@ -32,7 +32,7 @@ dotnet add package AIAgentFramework.Monitoring
 ### 기본 설정
 
 ```csharp
-using AIAgentFramework.Core.Interfaces;
+
 using AIAgentFramework.Monitoring.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

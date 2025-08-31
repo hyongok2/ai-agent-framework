@@ -1,4 +1,5 @@
-using AIAgentFramework.Core.Interfaces;
+
+using AIAgentFramework.Core.Infrastructure;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

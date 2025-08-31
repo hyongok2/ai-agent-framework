@@ -1,4 +1,8 @@
-using AIAgentFramework.Core.Interfaces;
+
+using AIAgentFramework.Core.LLM.Abstractions;
+using AIAgentFramework.Core.LLM.Attributes;
+using AIAgentFramework.Core.Tools.Abstractions;
+using AIAgentFramework.Core.Tools.Attributes;
 using AIAgentFramework.Registry.Models;
 using AIAgentFramework.Registry.Utils;
 using Microsoft.Extensions.Logging;
@@ -667,7 +671,7 @@ public class Registry : IAdvancedRegistry
         var metadata = CreateDefaultLLMFunctionMetadata(function);
         
         // Attribute에서 추가 정보 추출
-        var attribute = type.GetCustomAttribute<AIAgentFramework.Core.Attributes.LLMFunctionAttribute>();
+        var attribute = type.GetCustomAttribute<AIAgentFramework.Core.LLM.Attributes.LLMFunctionAttribute>();
         if (attribute != null)
         {
             metadata.Name = !string.IsNullOrEmpty(attribute.Name) ? attribute.Name : metadata.Name;
@@ -696,7 +700,7 @@ public class Registry : IAdvancedRegistry
         var metadata = CreateDefaultToolMetadata(tool);
         
         // Built-In Tool Attribute 확인
-        var builtInAttribute = type.GetCustomAttribute<AIAgentFramework.Core.Attributes.BuiltInToolAttribute>();
+        var builtInAttribute = type.GetCustomAttribute<BuiltInToolAttribute>();
         if (builtInAttribute != null)
         {
             metadata.Name = !string.IsNullOrEmpty(builtInAttribute.Name) ? builtInAttribute.Name : metadata.Name;
@@ -718,7 +722,7 @@ public class Registry : IAdvancedRegistry
         }
 
         // Plugin Tool Attribute 확인
-        var pluginAttribute = type.GetCustomAttribute<AIAgentFramework.Core.Attributes.PluginToolAttribute>();
+        var pluginAttribute = type.GetCustomAttribute<PluginToolAttribute>();
         if (pluginAttribute != null)
         {
             metadata.Name = !string.IsNullOrEmpty(pluginAttribute.Name) ? pluginAttribute.Name : metadata.Name;
@@ -745,7 +749,7 @@ public class Registry : IAdvancedRegistry
         }
 
         // MCP Tool Attribute 확인
-        var mcpAttribute = type.GetCustomAttribute<AIAgentFramework.Core.Attributes.MCPToolAttribute>();
+        var mcpAttribute = type.GetCustomAttribute<MCPToolAttribute>();
         if (mcpAttribute != null)
         {
             metadata.Name = !string.IsNullOrEmpty(mcpAttribute.Name) ? mcpAttribute.Name : metadata.Name;

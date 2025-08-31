@@ -1,4 +1,6 @@
-using AIAgentFramework.Core.Interfaces;
+
+using AIAgentFramework.Core.LLM.Abstractions;
+using AIAgentFramework.Core.Tools.Abstractions;
 using AIAgentFramework.Registry.Models;
 using Microsoft.Extensions.Logging;
 using System.Reflection;

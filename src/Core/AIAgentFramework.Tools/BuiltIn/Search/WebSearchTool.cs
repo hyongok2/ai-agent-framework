@@ -1,5 +1,7 @@
-using AIAgentFramework.Core.Interfaces;
-using AIAgentFramework.Core.Models;
+
+
+using AIAgentFramework.Core.Tools.Abstractions;
+using AIAgentFramework.Core.Tools.Models;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using System.Text.Json;

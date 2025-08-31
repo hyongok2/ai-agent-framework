@@ -1,4 +1,6 @@
-using AIAgentFramework.Core.Interfaces;
+
+
+using AIAgentFramework.Core.Tools.Abstractions;
 
 namespace AIAgentFramework.Tools.MCP;
 

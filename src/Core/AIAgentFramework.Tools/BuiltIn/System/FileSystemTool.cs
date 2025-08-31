@@ -1,5 +1,5 @@
-using AIAgentFramework.Core.Interfaces;
-using AIAgentFramework.Core.Models;
+using AIAgentFramework.Core.Tools.Abstractions;
+using AIAgentFramework.Core.Tools.Models;
 using Microsoft.Extensions.Logging;
 
 namespace AIAgentFramework.Tools.BuiltIn.System;

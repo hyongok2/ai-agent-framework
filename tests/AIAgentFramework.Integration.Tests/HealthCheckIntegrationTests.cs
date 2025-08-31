@@ -1,4 +1,7 @@
-using AIAgentFramework.Core.Interfaces;
+
+using AIAgentFramework.Core.LLM.Abstractions;
+using AIAgentFramework.Core.Orchestration.Abstractions;
+using AIAgentFramework.Core.Tools.Abstractions;
 using AIAgentFramework.Monitoring.Extensions;
 using AIAgentFramework.Monitoring.HealthChecks;
 using AIAgentFramework.Monitoring.Interfaces;

@@ -1,8 +1,13 @@
-using AIAgentFramework.Core.Interfaces;
-using AIAgentFramework.Core.Models;
+
+using AIAgentFramework.Core.LLM.Abstractions;
+using AIAgentFramework.Core.LLM.Models;
+
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Text;
+using AIAgentFramework.Core.Orchestration.Abstractions;
+using AIAgentFramework.Core.Infrastructure;
+using AIAgentFramework.Core.Tools.Models;
 
 namespace AIAgentFramework.Orchestration.Strategies;
 

@@ -1,4 +1,5 @@
-using AIAgentFramework.Core.Interfaces;
+
+using AIAgentFramework.Core.Tools.Abstractions;
 using AIAgentFramework.Tools.BuiltIn;
 using AIAgentFramework.Tools.Plugin;
 using Microsoft.Extensions.DependencyInjection;

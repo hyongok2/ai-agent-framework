@@ -1,4 +1,6 @@
-using AIAgentFramework.Core.Interfaces;
+
+using AIAgentFramework.Core.Orchestration.Abstractions;
+using AIAgentFramework.Core.User;
 using AIAgentFramework.Monitoring.Telemetry;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;

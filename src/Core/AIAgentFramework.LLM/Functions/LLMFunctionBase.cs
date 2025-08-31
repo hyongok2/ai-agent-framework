@@ -1,5 +1,8 @@
-using AIAgentFramework.Core.Interfaces;
-using AIAgentFramework.Core.Models;
+using AIAgentFramework.Core.Infrastructure;
+
+using AIAgentFramework.Core.LLM.Abstractions;
+using AIAgentFramework.Core.LLM.Models;
+
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 

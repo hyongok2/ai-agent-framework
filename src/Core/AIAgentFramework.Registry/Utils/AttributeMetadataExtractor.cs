@@ -1,4 +1,6 @@
-using AIAgentFramework.Core.Attributes;
+
+using AIAgentFramework.Core.LLM.Attributes;
+using AIAgentFramework.Core.Tools.Attributes;
 using AIAgentFramework.Registry.Models;
 using Microsoft.Extensions.Logging;
 using System.Reflection;

@@ -1,6 +1,3 @@
-using AIAgentFramework.Core.Interfaces;
-using AIAgentFramework.Core.Models;
-
 namespace AIAgentFramework.Tools.Plugin;
 
 /// <summary>

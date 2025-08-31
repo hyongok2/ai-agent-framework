@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AIAgentFramework.Core.Interfaces;
-using AIAgentFramework.Core.Models;
-using AIAgentFramework.Core.Factories;
+using AIAgentFramework.Core.Actions.Factories;
+using AIAgentFramework.Core.Orchestration.Abstractions;
+using AIAgentFramework.Core.User;
 using AIAgentFramework.State.Interfaces;
 using Microsoft.Extensions.Logging;
 

@@ -1,4 +1,5 @@
-using AIAgentFramework.Core.Interfaces;
+
+using AIAgentFramework.Core.LLM.Abstractions;
 using AIAgentFramework.LLM.Parsing.Models;
 using Microsoft.Extensions.Logging;
 

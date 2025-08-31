@@ -1,4 +1,5 @@
-using AIAgentFramework.Core.Interfaces;
+
+using AIAgentFramework.Core.LLM.Abstractions;
 using AIAgentFramework.LLM.Interfaces;
 using AIAgentFramework.Monitoring.Services;
 using AIAgentFramework.Monitoring.Extensions;
@@ -9,6 +10,8 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using AIAgentFramework.Core.Orchestration.Abstractions;
+using AIAgentFramework.Core.Tools.Abstractions;
 
 namespace AIAgentFramework.Integration.Tests;
 

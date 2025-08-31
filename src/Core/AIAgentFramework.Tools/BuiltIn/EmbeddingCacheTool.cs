@@ -1,6 +1,6 @@
-using AIAgentFramework.Core.Attributes;
-using AIAgentFramework.Core.Interfaces;
-using AIAgentFramework.Core.Models;
+using AIAgentFramework.Core.Tools.Abstractions;
+using AIAgentFramework.Core.Tools.Attributes;
+using AIAgentFramework.Core.Tools.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System.Collections;
