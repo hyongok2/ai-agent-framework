@@ -26,7 +26,10 @@
       "Bash(move E2EWorkflowIntegrationTests.cs.bak E2EWorkflowIntegrationTests.cs)",
       "Bash(dir \"C:\\src\\work\\ai\\ai-agent-framework\\tests\\AIAgentFramework.Integration.Tests\" /b)",
       "Bash(move:*)",
-      "Bash(dir /S \"src\\Core\\AIAgentFramework.Core\\LLM\")"
+      "Bash(dir /S \"src\\Core\\AIAgentFramework.Core\\LLM\")",
+      "Bash(dir:*)",
+      "Bash(copy AIAgentFramework.sln AIAgentFramework.sln.bak)",
+      "Bash(cp:*)"
     ],
     "deny": [],
     "ask": []
