@@ -2,6 +2,7 @@
 
 using AIAgentFramework.Core.Tools.Abstractions;
 using AIAgentFramework.Core.Tools.Models;
+using AIAgentFramework.Registry;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -49,8 +50,9 @@ public class WebSearchTool : ToolBase
     public WebSearchTool(
         HttpClient httpClient,
         ILogger<WebSearchTool> logger,
+        IAdvancedRegistry registry,
         WebSearchOptions? options = null)
-        : base(logger)
+        : base(logger, registry)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _options = options ?? new WebSearchOptions();

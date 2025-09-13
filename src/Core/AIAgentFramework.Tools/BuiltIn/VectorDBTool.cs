@@ -4,6 +4,7 @@
 using AIAgentFramework.Core.Tools.Abstractions;
 using AIAgentFramework.Core.Tools.Attributes;
 using AIAgentFramework.Core.Tools.Models;
+using AIAgentFramework.Registry;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -40,8 +41,9 @@ public class VectorDBTool : ToolBase
     /// </summary>
     /// <param name="vectorDb">벡터 데이터베이스</param>
     /// <param name="logger">로거</param>
-    public VectorDBTool(IVectorDatabase vectorDb, ILogger<VectorDBTool> logger)
-        : base(logger)
+    /// <param name="registry">Registry</param>
+    public VectorDBTool(IVectorDatabase vectorDb, ILogger<VectorDBTool> logger, IAdvancedRegistry registry)
+        : base(logger, registry)
     {
         _vectorDb = vectorDb ?? throw new ArgumentNullException(nameof(vectorDb));
 

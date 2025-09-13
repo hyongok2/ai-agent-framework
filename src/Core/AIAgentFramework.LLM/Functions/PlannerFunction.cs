@@ -4,6 +4,7 @@ using AIAgentFramework.Core.LLM.Attributes;
 using AIAgentFramework.Core.LLM.Models;
 using AIAgentFramework.LLM.Parsing;
 using AIAgentFramework.LLM.Parsing.Models;
+using AIAgentFramework.Registry;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -42,8 +43,9 @@ public class PlannerFunction : LLMFunctionBase
     /// <param name="promptManager">프롬프트 관리자</param>
     /// <param name="responseParser">응답 파서</param>
     /// <param name="logger">로거</param>
-    public PlannerFunction(ILLMProvider llmProvider, IPromptManager promptManager, ILLMResponseParser responseParser, ILogger<PlannerFunction> logger)
-        : base(llmProvider, promptManager, logger)
+    /// <param name="registry">Registry</param>
+    public PlannerFunction(ILLMProvider llmProvider, IPromptManager promptManager, ILLMResponseParser responseParser, ILogger<PlannerFunction> logger, IAdvancedRegistry registry)
+        : base(llmProvider, promptManager, logger, registry)
     {
         _responseParser = responseParser ?? throw new ArgumentNullException(nameof(responseParser));
     }

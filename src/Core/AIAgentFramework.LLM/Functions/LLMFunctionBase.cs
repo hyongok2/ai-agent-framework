@@ -1,8 +1,9 @@
 using AIAgentFramework.Core.Infrastructure;
-
 using AIAgentFramework.Core.LLM.Abstractions;
+using AIAgentFramework.Core.LLM.Attributes;
 using AIAgentFramework.Core.LLM.Models;
-
+using AIAgentFramework.Registry;
+using AIAgentFramework.Registry.Models;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
@@ -16,6 +17,7 @@ public abstract class LLMFunctionBase : ILLMFunction
     protected readonly ILLMProvider _llmProvider;
     protected readonly IPromptManager _promptManager;
     protected readonly ILogger _logger;
+    protected readonly IAdvancedRegistry _registry;
 
     /// <summary>
     /// 생성자
@@ -23,11 +25,50 @@ public abstract class LLMFunctionBase : ILLMFunction
     /// <param name="llmProvider">LLM Provider</param>
     /// <param name="promptManager">프롬프트 관리자</param>
     /// <param name="logger">로거</param>
-    protected LLMFunctionBase(ILLMProvider llmProvider, IPromptManager promptManager, ILogger logger)
+    /// <param name="registry">Registry</param>
+    protected LLMFunctionBase(ILLMProvider llmProvider, IPromptManager promptManager, ILogger logger, IAdvancedRegistry registry)
     {
         _llmProvider = llmProvider ?? throw new ArgumentNullException(nameof(llmProvider));
         _promptManager = promptManager ?? throw new ArgumentNullException(nameof(promptManager));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _registry = registry ?? throw new ArgumentNullException(nameof(registry));
+
+        // Registry에 자동 등록
+        RegisterSelfToRegistry();
+    }
+
+    /// <summary>
+    /// Registry에 자기 자신을 등록합니다.
+    /// </summary>
+    private void RegisterSelfToRegistry()
+    {
+        try
+        {
+            // LLMFunction Attribute에서 메타데이터 추출
+            var attribute = GetType().GetCustomAttributes(typeof(LLMFunctionAttribute), false)
+                .FirstOrDefault() as LLMFunctionAttribute;
+
+            var metadata = new LLMFunctionMetadata
+            {
+                Name = Name,
+                Role = Role,
+                Description = Description,
+                Version = attribute?.Version ?? "1.0.0",
+                Author = "AIAgentFramework",
+                RegisteredAt = DateTime.UtcNow,
+                Tags = new List<string> { "llm", "function" },
+                Category = "LLM Function",
+                ComponentType = GetType(),
+                IsEnabled = true
+            };
+
+            _registry.RegisterLLMFunction(this, metadata);
+            _logger.LogDebug("Automatically registered LLM Function: {Name} (Role: {Role})", Name, Role);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to auto-register LLM Function: {FunctionType}", GetType().Name);
+        }
     }
 
     /// <inheritdoc />

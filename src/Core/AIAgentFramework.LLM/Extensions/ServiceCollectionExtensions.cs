@@ -1,6 +1,9 @@
 
 using AIAgentFramework.Core.LLM.Abstractions;
 using AIAgentFramework.LLM.Factories;
+using AIAgentFramework.LLM.Functions;
+using AIAgentFramework.LLM.Functions.Analysis;
+using AIAgentFramework.LLM.Functions.Planning;
 using AIAgentFramework.LLM.Interfaces;
 using AIAgentFramework.LLM.Providers;
 using AIAgentFramework.LLM.Prompts;
@@ -252,6 +255,41 @@ public static class ServiceCollectionExtensions
         {
             var factory = provider.GetRequiredService<ILLMProviderFactory>();
             return providerType => factory.CreateProvider(providerType);
+        });
+
+        return services;
+    }
+
+    /// <summary>
+    /// LLM Functions를 등록합니다.
+    /// </summary>
+    /// <param name="services">서비스 컬렉션</param>
+    /// <returns>서비스 컬렉션</returns>
+    public static IServiceCollection AddLLMFunctions(this IServiceCollection services)
+    {
+        // 모든 LLM Functions 등록
+        services.AddScoped<GeneratorFunction>();
+        services.AddScoped<InterpreterFunction>();
+        services.AddScoped<SummarizerFunction>();
+        services.AddScoped<PlannerFunction>();
+        services.AddScoped<ToolParameterSetterFunction>();
+        services.AddScoped<AnalyzerFunction>();
+        services.AddScoped<CompletionCheckerFunction>();
+
+        // ILLMFunction으로도 접근 가능하도록 팩토리 등록
+        services.AddScoped<Func<string, ILLMFunction?>>(provider =>
+        {
+            return functionName => functionName.ToLowerInvariant() switch
+            {
+                "generator" => provider.GetService<GeneratorFunction>(),
+                "interpreter" => provider.GetService<InterpreterFunction>(),
+                "summarizer" => provider.GetService<SummarizerFunction>(),
+                "planner" => provider.GetService<PlannerFunction>(),
+                "tool_parameter_setter" => provider.GetService<ToolParameterSetterFunction>(),
+                "analyzer" => provider.GetService<AnalyzerFunction>(),
+                "completion_checker" => provider.GetService<CompletionCheckerFunction>(),
+                _ => null
+            };
         });
 
         return services;

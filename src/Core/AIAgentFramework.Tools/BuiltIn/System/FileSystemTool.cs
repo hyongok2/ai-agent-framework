@@ -1,5 +1,6 @@
 using AIAgentFramework.Core.Tools.Abstractions;
 using AIAgentFramework.Core.Tools.Models;
+using AIAgentFramework.Registry;
 using Microsoft.Extensions.Logging;
 
 namespace AIAgentFramework.Tools.BuiltIn.System;
@@ -27,8 +28,8 @@ public class FileSystemTool : ToolBase
     /// <summary>
     /// 생성자
     /// </summary>
-    public FileSystemTool(ILogger<FileSystemTool> logger, FileSystemOptions? options = null)
-        : base(logger)
+    public FileSystemTool(ILogger<FileSystemTool> logger, IAdvancedRegistry registry, FileSystemOptions? options = null)
+        : base(logger, registry)
     {
         _options = options ?? new FileSystemOptions();
     }

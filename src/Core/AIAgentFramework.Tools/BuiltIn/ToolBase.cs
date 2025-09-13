@@ -1,5 +1,7 @@
 using AIAgentFramework.Core.Tools.Abstractions;
 using AIAgentFramework.Core.Tools.Models;
+using AIAgentFramework.Registry;
+using AIAgentFramework.Registry.Models;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
@@ -11,14 +13,49 @@ namespace AIAgentFramework.Tools.BuiltIn;
 public abstract class ToolBase : ITool
 {
     protected readonly ILogger _logger;
+    protected readonly IAdvancedRegistry _registry;
 
     /// <summary>
     /// 생성자
     /// </summary>
     /// <param name="logger">로거</param>
-    protected ToolBase(ILogger logger)
+    /// <param name="registry">Registry</param>
+    protected ToolBase(ILogger logger, IAdvancedRegistry registry)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _registry = registry ?? throw new ArgumentNullException(nameof(registry));
+
+        // Registry에 자동 등록
+        RegisterSelfToRegistry();
+    }
+
+    /// <summary>
+    /// Registry에 자기 자신을 등록합니다.
+    /// </summary>
+    private void RegisterSelfToRegistry()
+    {
+        try
+        {
+            var metadata = new ToolMetadata
+            {
+                Name = Name,
+                Description = Description,
+                Category = Category,
+                Version = "1.0.0",
+                Author = "AIAgentFramework",
+                RegisteredAt = DateTime.UtcNow,
+                Tags = new List<string> { "tool" },
+                ComponentType = GetType(),
+                IsEnabled = true
+            };
+
+            _registry.RegisterTool(this, metadata);
+            _logger.LogDebug("Automatically registered Tool: {Name} (Category: {Category})", Name, Category);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to auto-register Tool: {ToolType}", GetType().Name);
+        }
     }
 
     /// <inheritdoc />

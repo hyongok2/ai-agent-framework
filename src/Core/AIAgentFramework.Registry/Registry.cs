@@ -157,7 +157,13 @@ public class Registry : IAdvancedRegistry
             _registrations[registration.Id] = registration;
             _llmFunctions[metadata.Name] = function;
 
-            _logger.LogInformation("LLM Function registered: {Name} (Role: {Role})", 
+            // Role로도 조회 가능하도록 이중 등록 (Name과 Role이 다른 경우)
+            if (!string.IsNullOrEmpty(metadata.Role) && metadata.Role != metadata.Name)
+            {
+                _llmFunctions[metadata.Role] = function;
+            }
+
+            _logger.LogInformation("LLM Function registered: {Name} (Role: {Role})",
                 metadata.Name, metadata.Role);
 
             return registration.Id;

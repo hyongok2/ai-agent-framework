@@ -7,6 +7,7 @@ using AIAgentFramework.Core.Orchestration.Execution;
 using AIAgentFramework.Core.Tools.Abstractions;
 using AIAgentFramework.Core.Tools.Registry;
 using AIAgentFramework.Registry.AttributeBasedRegistration;
+using AIAgentFramework.Registry.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
@@ -43,7 +44,8 @@ public static class ServiceCollectionExtensions
         // 타입 안전한 컨텍스트 및 팩토리 서비스 등록 (Core 레벨)
         services.AddScoped<IExecutionContextFactory, ExecutionContextFactory>();
         services.AddScoped<IActionFactory, ActionFactory>();
-        
+
+
         return services;
     }
 
@@ -64,7 +66,7 @@ public static class ServiceCollectionExtensions
         {
             var registry = provider.GetRequiredService<IAdvancedRegistry>();
             var logger = provider.GetRequiredService<ILogger<RegistryInitializer>>();
-            return new RegistryInitializer(registry, logger, assemblies);
+            return new RegistryInitializer(registry, logger, provider, assemblies);
         });
 
         return services;
@@ -104,6 +106,7 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+
 }
 
 /// <summary>
@@ -127,6 +130,8 @@ public class RegistryInitializer : IRegistryInitializer
     private readonly ILogger<RegistryInitializer> _logger;
     private readonly Assembly[] _assemblies;
 
+    private readonly IServiceProvider? _serviceProvider;
+
     /// <summary>
     /// 생성자
     /// </summary>
@@ -134,12 +139,31 @@ public class RegistryInitializer : IRegistryInitializer
     /// <param name="logger">로거</param>
     /// <param name="assemblies">어셈블리 목록</param>
     public RegistryInitializer(
-        IAdvancedRegistry registry, 
-        ILogger<RegistryInitializer> logger, 
+        IAdvancedRegistry registry,
+        ILogger<RegistryInitializer> logger,
         Assembly[] assemblies)
     {
         _registry = registry ?? throw new ArgumentNullException(nameof(registry));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _assemblies = assemblies ?? throw new ArgumentNullException(nameof(assemblies));
+    }
+
+    /// <summary>
+    /// 생성자 (DI Service Provider 포함)
+    /// </summary>
+    /// <param name="registry">Registry</param>
+    /// <param name="logger">로거</param>
+    /// <param name="serviceProvider">서비스 프로바이더</param>
+    /// <param name="assemblies">어셈블리 목록</param>
+    public RegistryInitializer(
+        IAdvancedRegistry registry,
+        ILogger<RegistryInitializer> logger,
+        IServiceProvider serviceProvider,
+        Assembly[] assemblies)
+    {
+        _registry = registry ?? throw new ArgumentNullException(nameof(registry));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _assemblies = assemblies ?? throw new ArgumentNullException(nameof(assemblies));
     }
 
@@ -158,19 +182,19 @@ public class RegistryInitializer : IRegistryInitializer
                 {
                     _registry.AutoRegisterFromAssembly(assembly);
                     totalRegistered++;
-                    
+
                     _logger.LogDebug("Processed assembly: {AssemblyName}", assembly.GetName().Name);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to register components from assembly: {AssemblyName}", 
+                    _logger.LogError(ex, "Failed to register components from assembly: {AssemblyName}",
                         assembly.GetName().Name);
                 }
             }
 
             var status = _registry.GetRegistryStatus();
             _logger.LogInformation("Registry initialization completed. Total components: {TotalComponents}, " +
-                                 "LLM Functions: {LLMFunctions}, Tools: {Tools}", 
+                                 "LLM Functions: {LLMFunctions}, Tools: {Tools}",
                                  status.TotalComponents, status.LLMFunctionCount, status.ToolCount);
         }
         catch (Exception ex)

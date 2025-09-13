@@ -5,6 +5,7 @@ using AIAgentFramework.Core.LLM.Abstractions;
 using AIAgentFramework.Core.LLM.Attributes;
 using AIAgentFramework.Core.LLM.Models;
 using AIAgentFramework.Core.Tools.Abstractions;
+using AIAgentFramework.Registry;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -16,8 +17,8 @@ namespace AIAgentFramework.LLM.Functions;
 [LLMFunction("tool_parameter_setter", "도구 실행을 위한 파라미터를 설정합니다", "tool_parameter_setter")]
 public class ToolParameterSetterFunction : LLMFunctionBase
 {
-    public ToolParameterSetterFunction(ILLMProvider llmProvider, IPromptManager promptManager, ILogger<ToolParameterSetterFunction> logger) 
-        : base(llmProvider, promptManager, logger)
+    public ToolParameterSetterFunction(ILLMProvider llmProvider, IPromptManager promptManager, ILogger<ToolParameterSetterFunction> logger, IAdvancedRegistry registry)
+        : base(llmProvider, promptManager, logger, registry)
     {
     }
     public override string Name => "tool_parameter_setter";

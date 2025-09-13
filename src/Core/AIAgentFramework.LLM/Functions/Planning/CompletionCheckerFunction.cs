@@ -2,6 +2,7 @@ using AIAgentFramework.Core.Infrastructure;
 using AIAgentFramework.Core.LLM.Abstractions;
 using AIAgentFramework.Core.LLM.Attributes;
 using AIAgentFramework.Core.LLM.Models;
+using AIAgentFramework.Registry;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -37,8 +38,9 @@ public class CompletionCheckerFunction : LLMFunctionBase
     /// <param name="llmProvider">LLM Provider</param>
     /// <param name="promptManager">프롬프트 관리자</param>
     /// <param name="logger">로거</param>
-    public CompletionCheckerFunction(ILLMProvider llmProvider, IPromptManager promptManager, ILogger<CompletionCheckerFunction> logger)
-        : base(llmProvider, promptManager, logger)
+    /// <param name="registry">Registry</param>
+    public CompletionCheckerFunction(ILLMProvider llmProvider, IPromptManager promptManager, ILogger<CompletionCheckerFunction> logger, IAdvancedRegistry registry)
+        : base(llmProvider, promptManager, logger, registry)
     {
     }
 

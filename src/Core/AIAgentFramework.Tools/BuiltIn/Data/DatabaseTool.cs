@@ -2,6 +2,7 @@
 
 using AIAgentFramework.Core.Tools.Abstractions;
 using AIAgentFramework.Core.Tools.Models;
+using AIAgentFramework.Registry;
 using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Data.Common;
@@ -31,8 +32,8 @@ public class DatabaseTool : ToolBase
     /// <summary>
     /// 생성자
     /// </summary>
-    public DatabaseTool(ILogger<DatabaseTool> logger, DatabaseOptions? options = null)
-        : base(logger)
+    public DatabaseTool(ILogger<DatabaseTool> logger, IAdvancedRegistry registry, DatabaseOptions? options = null)
+        : base(logger, registry)
     {
         _options = options ?? new DatabaseOptions();
     }

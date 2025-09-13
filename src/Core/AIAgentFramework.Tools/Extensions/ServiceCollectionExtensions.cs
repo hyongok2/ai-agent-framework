@@ -1,6 +1,8 @@
 
 using AIAgentFramework.Core.Tools.Abstractions;
 using AIAgentFramework.Tools.BuiltIn;
+using AIAgentFramework.Tools.BuiltIn.System;
+using AIAgentFramework.Tools.BuiltIn.Search;
 using AIAgentFramework.Tools.Plugin;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,10 +26,14 @@ public static class ServiceCollectionExtensions
         // Built-In Tools 등록
         services.AddScoped<ITool, EmbeddingCacheTool>();
         services.AddScoped<ITool, VectorDBTool>();
+        services.AddScoped<ITool, FileSystemTool>();
+        services.AddScoped<ITool, WebSearchTool>();
 
         // 개별 도구 등록 (특정 도구가 필요한 경우)
         services.AddScoped<EmbeddingCacheTool>();
         services.AddScoped<VectorDBTool>();
+        services.AddScoped<FileSystemTool>();
+        services.AddScoped<WebSearchTool>();
 
         return services;
     }

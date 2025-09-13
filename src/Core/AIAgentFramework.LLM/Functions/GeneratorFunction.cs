@@ -4,7 +4,7 @@ using AIAgentFramework.Core.Infrastructure;
 using AIAgentFramework.Core.LLM.Abstractions;
 using AIAgentFramework.Core.LLM.Attributes;
 using AIAgentFramework.Core.LLM.Models;
-
+using AIAgentFramework.Registry;
 using Microsoft.Extensions.Logging;
 
 namespace AIAgentFramework.LLM.Functions;
@@ -12,8 +12,8 @@ namespace AIAgentFramework.LLM.Functions;
 [LLMFunction("generator", "generator", "창작 및 콘텐츠 생성")]
 public class GeneratorFunction : LLMFunctionBase
 {
-    public GeneratorFunction(ILLMProvider llmProvider, IPromptManager promptManager, ILogger<GeneratorFunction> logger)
-        : base(llmProvider, promptManager, logger)
+    public GeneratorFunction(ILLMProvider llmProvider, IPromptManager promptManager, ILogger<GeneratorFunction> logger, IAdvancedRegistry registry)
+        : base(llmProvider, promptManager, logger, registry)
     {
     }
 

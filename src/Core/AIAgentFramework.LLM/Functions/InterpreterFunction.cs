@@ -2,6 +2,7 @@ using AIAgentFramework.Core.Infrastructure;
 using AIAgentFramework.Core.LLM.Abstractions;
 using AIAgentFramework.Core.LLM.Attributes;
 using AIAgentFramework.Core.LLM.Models;
+using AIAgentFramework.Registry;
 using Microsoft.Extensions.Logging;
 
 namespace AIAgentFramework.LLM.Functions;
@@ -9,8 +10,8 @@ namespace AIAgentFramework.LLM.Functions;
 [LLMFunction("interpreter", "interpreter", "사용자 입력 해석 및 의도 파악")]
 public class InterpreterFunction : LLMFunctionBase
 {
-    public InterpreterFunction(ILLMProvider llmProvider, IPromptManager promptManager, ILogger<InterpreterFunction> logger)
-        : base(llmProvider, promptManager, logger)
+    public InterpreterFunction(ILLMProvider llmProvider, IPromptManager promptManager, ILogger<InterpreterFunction> logger, IAdvancedRegistry registry)
+        : base(llmProvider, promptManager, logger, registry)
     {
     }
 

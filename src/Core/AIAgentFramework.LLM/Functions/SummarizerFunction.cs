@@ -2,6 +2,7 @@ using AIAgentFramework.Core.Infrastructure;
 using AIAgentFramework.Core.LLM.Abstractions;
 using AIAgentFramework.Core.LLM.Attributes;
 using AIAgentFramework.Core.LLM.Models;
+using AIAgentFramework.Registry;
 using Microsoft.Extensions.Logging;
 
 namespace AIAgentFramework.LLM.Functions;
@@ -9,8 +10,8 @@ namespace AIAgentFramework.LLM.Functions;
 [LLMFunction("summarizer", "summarizer", "텍스트 요약 및 핵심 내용 추출")]
 public class SummarizerFunction : LLMFunctionBase
 {
-    public SummarizerFunction(ILLMProvider llmProvider, IPromptManager promptManager, ILogger<SummarizerFunction> logger)
-        : base(llmProvider, promptManager, logger)
+    public SummarizerFunction(ILLMProvider llmProvider, IPromptManager promptManager, ILogger<SummarizerFunction> logger, IAdvancedRegistry registry)
+        : base(llmProvider, promptManager, logger, registry)
     {
     }
 

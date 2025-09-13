@@ -1,35 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dotnet test:*)",
-      "Bash(dotnet build)",
-      "Bash(del \"C:\\src\\work\\ai\\ai-agent-framework\\AIAgentFramework.LLM\\Class1.cs\")",
-      "Bash(rm:*)",
-      "Bash(dotnet clean:*)",
-      "Bash(dotnet restore:*)",
-      "Bash(find:*)",
-      "Bash(dotnet build:*)",
-      "Bash(del \"C:\\src\\work\\ai\\ai-agent-framework\\AIAgentFramework.State\\Providers\\InMemoryStateProvider.cs\")",
-      "WebSearch",
-      "Bash(del:*)",
-      "Bash(mkdir:*)",
-      "Bash(robocopy:*)",
-      "Bash(xcopy:*)",
-      "Bash(tree:*)",
-      "Bash(powershell:*)",
-      "Bash(dotnet sln:*)",
-      "Bash(dotnet build)",
-      "Bash(powershell:*)",
-      "Bash(dotnet new:*)",
-      "Bash(rename:*)",
-      "Bash(move E2EWorkflowIntegrationTests.cs E2EWorkflowIntegrationTests.cs.bak)",
-      "Bash(move E2EWorkflowIntegrationTests.cs.bak E2EWorkflowIntegrationTests.cs)",
-      "Bash(dir \"C:\\src\\work\\ai\\ai-agent-framework\\tests\\AIAgentFramework.Integration.Tests\" /b)",
-      "Bash(move:*)",
-      "Bash(dir /S \"src\\Core\\AIAgentFramework.Core\\LLM\")",
-      "Bash(dir:*)",
-      "Bash(copy AIAgentFramework.sln AIAgentFramework.sln.bak)",
-      "Bash(cp:*)"
+      "Bash(Stop-Process -Force)",
+      "Bash(pkill:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

@@ -31,13 +31,27 @@
 - **문서화**: API Reference, Quick Start Guide, README 완성
 - **성능 검증**: 모든 성능 기준 달성
 
+## 🎯 프로젝트 핵심 방향
+
+### 🚨 최우선 원칙 (반드시 준수)
+1. **아키텍처 우선**: 기능 추가 전에 반드시 Clean Architecture 경계 준수 확인
+2. **Core = 비즈니스 로직만**: LLM/Tools/Registry는 순수 도메인 로직만, DI 설정 금지
+3. **Infrastructure = 기술 관심사**: 모든 ServiceCollectionExtensions는 Infrastructure 프로젝트에서 관리
+4. **단일 조합점**: WebAPI Program.cs에서만 전체 시스템 DI 구성
+5. **점진적 개선**: 큰 변경보다는 작은 단위로 검증하며 진행
+
 ## 📚 향후 개선 및 확장 계획
 
+### 🔧 긴급 리팩토링 필요 (우선순위 1)
+- **문제**: Core 프로젝트에 6개 ServiceCollectionExtensions 분산 (아키텍처 위반)
+- **해결**: Infrastructure/Configuration으로 DI 설정 통합 이동
+- **목표**: Clean Architecture 경계 복원
+
 ### 🔮 로드맵 
-- **Phase 7**: 플러그인 생태계 및 마켓플레이스
-- **Phase 8**: 엔터프라이즈 보안 및 규정 준수  
-- **Phase 9**: OpenTelemetry 통합, 고급 모니터링
-- **Phase 10**: MCP 프로토콜 완전 구현
+- **Phase 7**: 아키텍처 정리 및 경계 복원
+- **Phase 8**: 플러그인 생태계 및 마켓플레이스
+- **Phase 9**: 엔터프라이즈 보안 및 규정 준수  
+- **Phase 10**: OpenTelemetry 통합, 고급 모니터링
 
 ## 🏛️ 아키텍처 원칙
 

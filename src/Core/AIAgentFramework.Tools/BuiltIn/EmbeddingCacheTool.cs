@@ -1,6 +1,7 @@
 using AIAgentFramework.Core.Tools.Abstractions;
 using AIAgentFramework.Core.Tools.Attributes;
 using AIAgentFramework.Core.Tools.Models;
+using AIAgentFramework.Registry;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System.Collections;
@@ -42,8 +43,9 @@ public class EmbeddingCacheTool : ToolBase
     /// </summary>
     /// <param name="cache">메모리 캐시</param>
     /// <param name="logger">로거</param>
-    public EmbeddingCacheTool(IMemoryCache cache, ILogger<EmbeddingCacheTool> logger)
-        : base(logger)
+    /// <param name="registry">Registry</param>
+    public EmbeddingCacheTool(IMemoryCache cache, ILogger<EmbeddingCacheTool> logger, IAdvancedRegistry registry)
+        : base(logger, registry)
     {
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
         _defaultTtl = TimeSpan.FromHours(24); // 기본 24시간 캐시
