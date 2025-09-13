@@ -6,8 +6,8 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Text;
 using AIAgentFramework.Core.Orchestration.Abstractions;
-using AIAgentFramework.Core.Infrastructure;
 using AIAgentFramework.Core.Tools.Models;
+using AIAgentFramework.Core.Common.Registry;
 
 namespace AIAgentFramework.Orchestration.Strategies;
 

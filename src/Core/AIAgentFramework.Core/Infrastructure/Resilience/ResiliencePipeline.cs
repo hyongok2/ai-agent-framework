@@ -4,8 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace AIAgentFramework.Core.Resilience;
-
+namespace AIAgentFramework.Core.Infrastructure.Resilience;
 /// <summary>
 /// 여러 복원력 정책을 조합한 파이프라인
 /// </summary>

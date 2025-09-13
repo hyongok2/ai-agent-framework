@@ -1,4 +1,4 @@
-using AIAgentFramework.Core.Infrastructure;
+using AIAgentFramework.Core.Common.Registry;
 
 namespace AIAgentFramework.Core.Orchestration.Execution;
 

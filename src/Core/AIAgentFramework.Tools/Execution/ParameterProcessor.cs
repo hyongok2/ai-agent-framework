@@ -3,7 +3,7 @@
 using System.Text.Json;
 using AIAgentFramework.Core.Tools.Abstractions;
 using AIAgentFramework.Core.Tools.Models;
-using AIAgentFramework.Core.Validation;
+using AIAgentFramework.Core.Common.Validation;
 
 namespace AIAgentFramework.Tools.Execution;
 

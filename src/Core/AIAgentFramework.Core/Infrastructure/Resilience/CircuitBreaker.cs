@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace AIAgentFramework.Core.Resilience;
+namespace AIAgentFramework.Core.Infrastructure.Resilience;
 
 /// <summary>
 /// Circuit Breaker 패턴 구현

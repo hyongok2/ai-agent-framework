@@ -1,5 +1,4 @@
-namespace AIAgentFramework.Core.Validation;
-
+namespace AIAgentFramework.Core.Common.Validation;
 /// <summary>
 /// 검증자 인터페이스
 /// </summary>

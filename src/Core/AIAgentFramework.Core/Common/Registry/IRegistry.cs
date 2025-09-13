@@ -1,7 +1,7 @@
 using AIAgentFramework.Core.LLM.Abstractions;
 using AIAgentFramework.Core.Tools.Abstractions;
 
-namespace AIAgentFramework.Core.Infrastructure;
+namespace AIAgentFramework.Core.Common.Registry;
 
 /// <summary>
 /// 레지스트리 인터페이스

@@ -1,5 +1,5 @@
 
-using AIAgentFramework.Core.Infrastructure;
+using AIAgentFramework.Core.Common.Registry;
 using AIAgentFramework.Core.Orchestration.Abstractions;
 using AIAgentFramework.Orchestration;
 using Microsoft.AspNetCore.Mvc;

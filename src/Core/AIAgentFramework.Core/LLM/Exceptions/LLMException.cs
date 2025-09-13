@@ -1,4 +1,4 @@
-using AIAgentFramework.Core.Exceptions;
+using AIAgentFramework.Core.Common.Exceptions;
 
 namespace AIAgentFramework.Core.LLM.Exceptions;
 

@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace AIAgentFramework.Core.Resilience;
+namespace AIAgentFramework.Core.Infrastructure.Resilience;
 
 /// <summary>
 /// 재시도 정책 구현

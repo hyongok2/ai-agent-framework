@@ -1,7 +1,7 @@
 
 
 using AIAgentFramework.Core.Tools.Abstractions;
-using AIAgentFramework.Core.Validation;
+using AIAgentFramework.Core.Common.Validation;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 

@@ -1,6 +1,6 @@
 
 using AIAgentFramework.Core.Tools.Abstractions;
-using AIAgentFramework.Core.Validation;
+using AIAgentFramework.Core.Common.Validation;
 
 namespace AIAgentFramework.Core.Tools.Models;
 

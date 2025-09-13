@@ -1,14 +1,14 @@
-namespace AIAgentFramework.Core.Exceptions;
+namespace AIAgentFramework.Core.Common.Exceptions;
 
 /// <summary>
-/// 도구 관련 예외
+/// AI 에이전트 프레임워크 기본 예외
 /// </summary>
-public class ToolException : AIAgentFrameworkException
+public class AIAgentFrameworkException : Exception
 {
     /// <summary>
     /// 기본 생성자
     /// </summary>
-    public ToolException()
+    public AIAgentFrameworkException()
     {
     }
 
@@ -16,7 +16,7 @@ public class ToolException : AIAgentFrameworkException
     /// 메시지를 포함한 생성자
     /// </summary>
     /// <param name="message">예외 메시지</param>
-    public ToolException(string message) : base(message)
+    public AIAgentFrameworkException(string message) : base(message)
     {
     }
 
@@ -25,7 +25,7 @@ public class ToolException : AIAgentFrameworkException
     /// </summary>
     /// <param name="message">예외 메시지</param>
     /// <param name="innerException">내부 예외</param>
-    public ToolException(string message, Exception innerException) : base(message, innerException)
+    public AIAgentFrameworkException(string message, Exception innerException) : base(message, innerException)
     {
     }
 }

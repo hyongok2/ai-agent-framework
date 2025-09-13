@@ -1,5 +1,5 @@
 
-using AIAgentFramework.Core.Validation;
+using AIAgentFramework.Core.Common.Validation;
 
 namespace AIAgentFramework.Core.Tools.Abstractions;
 

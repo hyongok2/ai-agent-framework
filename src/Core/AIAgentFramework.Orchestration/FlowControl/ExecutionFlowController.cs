@@ -1,5 +1,5 @@
 
-using AIAgentFramework.Core.Infrastructure;
+using AIAgentFramework.Core.Common.Registry;
 using AIAgentFramework.Core.LLM.Models;
 using AIAgentFramework.Core.Tools.Models;
 using Microsoft.Extensions.Logging;

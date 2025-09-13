@@ -1,4 +1,4 @@
-namespace AIAgentFramework.Core.Infrastructure;
+namespace AIAgentFramework.Core.LLM.Abstractions;
 
 /// <summary>
 /// 프롬프트 관리자 인터페이스

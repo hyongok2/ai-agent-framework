@@ -1,6 +1,6 @@
 
 using AIAgentFramework.Core.Actions.Factories;
-using AIAgentFramework.Core.Infrastructure;
+using AIAgentFramework.Core.Common.Registry;
 using AIAgentFramework.Core.LLM.Abstractions;
 using AIAgentFramework.Core.LLM.Registry;
 using AIAgentFramework.Core.Orchestration.Execution;

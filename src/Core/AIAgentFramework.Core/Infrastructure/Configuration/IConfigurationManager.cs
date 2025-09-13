@@ -1,4 +1,4 @@
-namespace AIAgentFramework.Core.Infrastructure;
+namespace AIAgentFramework.Core.Infrastructure.Configuration;
 
 /// <summary>
 /// 설정 관리자 인터페이스
