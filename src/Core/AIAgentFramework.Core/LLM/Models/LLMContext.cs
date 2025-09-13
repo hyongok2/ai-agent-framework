@@ -1,46 +1,29 @@
 using AIAgentFramework.Core.LLM.Abstractions;
-using AIAgentFramework.Core.Orchestration.Execution;
-using AIAgentFramework.Core.Tools.Abstractions;
 
 namespace AIAgentFramework.Core.LLM.Models;
 
 /// <summary>
-/// LLM 컨텍스트 구현
+/// LLM 컨텍스트 구현 - 핵심 기능만
 /// </summary>
 public class LLMContext : ILLMContext
 {
     /// <inheritdoc />
     public string SessionId { get; set; } = string.Empty;
-    
+
     /// <inheritdoc />
     public string? Model { get; set; }
-    
+
     /// <inheritdoc />
     public Dictionary<string, object> Parameters { get; set; } = new();
-    
+
     /// <inheritdoc />
     public Dictionary<string, object> Metadata { get; set; } = new();
-    
-    /// <inheritdoc />
-    public List<IExecutionStep> ExecutionHistory { get; set; } = new();
-    
+
     /// <inheritdoc />
     public Dictionary<string, object> SharedData { get; set; } = new();
-    
-    /// <summary>
-    /// 사용자 요청
-    /// </summary>
+
+    /// <inheritdoc />
     public string? UserRequest { get; set; }
-    
-    /// <summary>
-    /// 도구 이름
-    /// </summary>
-    public string? ToolName { get; set; }
-    
-    /// <summary>
-    /// 도구 계약
-    /// </summary>
-    public IToolContract? ToolContract { get; set; }
 
     /// <summary>
     /// 생성자

@@ -1,61 +1,23 @@
 using AIAgentFramework.Core.Tools.Abstractions;
-using AIAgentFramework.Core.Tools.Models;
-using AIAgentFramework.Registry;
-using AIAgentFramework.Registry.Models;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;
 
 namespace AIAgentFramework.Tools.BuiltIn;
 
 /// <summary>
-/// 도구 기본 추상 클래스
+/// 도구 기본 클래스 - 독립적 구현
 /// </summary>
 public abstract class ToolBase : ITool
 {
     protected readonly ILogger _logger;
-    protected readonly IAdvancedRegistry _registry;
 
     /// <summary>
     /// 생성자
     /// </summary>
     /// <param name="logger">로거</param>
-    /// <param name="registry">Registry</param>
-    protected ToolBase(ILogger logger, IAdvancedRegistry registry)
+    protected ToolBase(ILogger logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _registry = registry ?? throw new ArgumentNullException(nameof(registry));
-
-        // Registry에 자동 등록
-        RegisterSelfToRegistry();
-    }
-
-    /// <summary>
-    /// Registry에 자기 자신을 등록합니다.
-    /// </summary>
-    private void RegisterSelfToRegistry()
-    {
-        try
-        {
-            var metadata = new ToolMetadata
-            {
-                Name = Name,
-                Description = Description,
-                Category = Category,
-                Version = "1.0.0",
-                Author = "AIAgentFramework",
-                RegisteredAt = DateTime.UtcNow,
-                Tags = new List<string> { "tool" },
-                ComponentType = GetType(),
-                IsEnabled = true
-            };
-
-            _registry.RegisterTool(this, metadata);
-            _logger.LogDebug("Automatically registered Tool: {Name} (Category: {Category})", Name, Category);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to auto-register Tool: {ToolType}", GetType().Name);
-        }
+        _logger.LogInformation("Tool created: {Name}", Name);
     }
 
     /// <inheritdoc />
@@ -63,167 +25,56 @@ public abstract class ToolBase : ITool
 
     /// <inheritdoc />
     public abstract string Description { get; }
-    
-    /// <inheritdoc />
-    public virtual string Category { get; } = "General";
 
     /// <inheritdoc />
-    public abstract IToolContract Contract { get; }
+    public abstract string Category { get; }
 
     /// <inheritdoc />
-    public virtual async Task<IToolResult> ExecuteAsync(IToolInput input, CancellationToken cancellationToken = default)
-    {
-        var stopwatch = Stopwatch.StartNew();
-        
-        try
-        {
-            _logger.LogDebug("Starting tool execution: {ToolName}", Name);
-
-            // 입력 검증
-            if (!await ValidateAsync(input, cancellationToken))
-            {
-                return ToolResult.CreateFailure($"Validation failed for tool: {Name}");
-            }
-
-            // 전처리
-            await PreProcessAsync(input, cancellationToken);
-
-            // 실제 실행
-            var result = await ExecuteInternalAsync(input, cancellationToken);
-
-            // 후처리
-            await PostProcessAsync(result, input, cancellationToken);
-
-            stopwatch.Stop();
-            result.ExecutionTime = stopwatch.Elapsed;
-
-            _logger.LogDebug("Completed tool execution: {ToolName} in {ElapsedMs}ms", 
-                Name, stopwatch.ElapsedMilliseconds);
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            _logger.LogError(ex, "Error executing tool: {ToolName}", Name);
-            
-            return ToolResult.CreateFailure($"Execution failed: {ex.Message}", stopwatch.Elapsed)
-                .WithMetadata("exception", ex.GetType().Name)
-                .WithMetadata("tool_name", Name);
-        }
-    }
+    public abstract Task<IToolResult> ExecuteAsync(IToolInput input, CancellationToken cancellationToken = default);
 
     /// <inheritdoc />
     public virtual Task<bool> ValidateAsync(IToolInput input, CancellationToken cancellationToken = default)
     {
-        // 기본 검증: 필수 파라미터 확인
-        foreach (var parameter in Contract.RequiredParameters)
-        {
-            if (!input.Parameters.ContainsKey(parameter) || 
-                input.Parameters[parameter] == null)
-            {
-                _logger.LogWarning("Required parameter missing: {Parameter} for tool: {ToolName}", 
-                    parameter, Name);
-                return Task.FromResult(false);
-            }
-        }
-
+        // 기본 구현: 항상 true
         return Task.FromResult(true);
-    }
-
-    /// <summary>
-    /// 전처리 (하위 클래스에서 오버라이드 가능)
-    /// </summary>
-    /// <param name="input">도구 입력</param>
-    /// <param name="cancellationToken">취소 토큰</param>
-    protected virtual Task PreProcessAsync(IToolInput input, CancellationToken cancellationToken = default)
-    {
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// 실제 실행 (하위 클래스에서 구현)
-    /// </summary>
-    /// <param name="input">도구 입력</param>
-    /// <param name="cancellationToken">취소 토큰</param>
-    /// <returns>실행 결과</returns>
-    protected abstract Task<ToolResult> ExecuteInternalAsync(IToolInput input, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 후처리 (하위 클래스에서 오버라이드 가능)
-    /// </summary>
-    /// <param name="result">실행 결과</param>
-    /// <param name="input">도구 입력</param>
-    /// <param name="cancellationToken">취소 토큰</param>
-    protected virtual Task PostProcessAsync(ToolResult result, IToolInput input, CancellationToken cancellationToken = default)
-    {
-        // 기본 메타데이터 추가
-        result.WithMetadata("tool_name", Name)
-              .WithMetadata("executed_at", DateTime.UtcNow);
-
-        return Task.CompletedTask;
     }
 
     /// <summary>
     /// 파라미터 값 가져오기
     /// </summary>
-    /// <typeparam name="T">파라미터 타입</typeparam>
-    /// <param name="input">입력</param>
-    /// <param name="parameterName">파라미터 이름</param>
-    /// <param name="defaultValue">기본값</param>
-    /// <returns>파라미터 값</returns>
-    protected T GetParameter<T>(IToolInput input, string parameterName, T defaultValue = default!)
+    protected T? GetParameter<T>(IToolInput input, string key, T? defaultValue = default)
     {
-        if (!input.Parameters.TryGetValue(parameterName, out var value) || value == null)
+        if (input.Parameters.TryGetValue(key, out var value) && value != null)
         {
-            return defaultValue;
-        }
-
-        try
-        {
-            if (value is T directValue)
+            try
             {
-                return directValue;
+                return (T?)Convert.ChangeType(value, typeof(T));
             }
-
-            // 타입 변환 시도
-            return (T)Convert.ChangeType(value, typeof(T));
+            catch
+            {
+                return defaultValue;
+            }
         }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to convert parameter {Parameter} to type {Type}", 
-                parameterName, typeof(T).Name);
-            return defaultValue;
-        }
+        return defaultValue;
     }
 
     /// <summary>
     /// 필수 파라미터 값 가져오기
     /// </summary>
-    /// <typeparam name="T">파라미터 타입</typeparam>
-    /// <param name="input">입력</param>
-    /// <param name="parameterName">파라미터 이름</param>
-    /// <returns>파라미터 값</returns>
-    /// <exception cref="ArgumentException">필수 파라미터가 없는 경우</exception>
-    protected T GetRequiredParameter<T>(IToolInput input, string parameterName)
+    protected T GetRequiredParameter<T>(IToolInput input, string key)
     {
-        if (!input.Parameters.TryGetValue(parameterName, out var value) || value == null)
+        if (!input.Parameters.TryGetValue(key, out var value) || value == null)
         {
-            throw new ArgumentException($"Required parameter '{parameterName}' is missing");
+            throw new ArgumentException($"Required parameter '{key}' is missing or null");
         }
 
         try
         {
-            if (value is T directValue)
-            {
-                return directValue;
-            }
-
             return (T)Convert.ChangeType(value, typeof(T));
         }
         catch (Exception ex)
         {
-            throw new ArgumentException($"Failed to convert parameter '{parameterName}' to type {typeof(T).Name}", ex);
+            throw new ArgumentException($"Parameter '{key}' cannot be converted to {typeof(T).Name}", ex);
         }
     }
 }

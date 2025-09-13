@@ -3,7 +3,8 @@
     "allow": [
       "Bash(Stop-Process -Force)",
       "Bash(pkill:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(copy:*)"
     ],
     "deny": [],
     "ask": []

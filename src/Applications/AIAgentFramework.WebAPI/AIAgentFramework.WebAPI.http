@@ -1,6 +1,0 @@
-@AIAgentFramework.WebAPI_HostAddress = http://localhost:5272
-
-GET {{AIAgentFramework.WebAPI_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

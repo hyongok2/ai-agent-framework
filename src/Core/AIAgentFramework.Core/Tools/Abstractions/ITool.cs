@@ -1,8 +1,7 @@
 namespace AIAgentFramework.Core.Tools.Abstractions;
 
-
 /// <summary>
-/// 도구 인터페이스
+/// 도구 인터페이스 - 핵심 기능만
 /// </summary>
 public interface ITool
 {
@@ -10,22 +9,17 @@ public interface ITool
     /// 도구 이름
     /// </summary>
     string Name { get; }
-    
+
     /// <summary>
     /// 설명
     /// </summary>
     string Description { get; }
-    
+
     /// <summary>
     /// 카테고리
     /// </summary>
     string Category { get; }
-    
-    /// <summary>
-    /// 도구 계약 (입출력 스키마)
-    /// </summary>
-    IToolContract Contract { get; }
-    
+
     /// <summary>
     /// 도구 실행
     /// </summary>
@@ -33,7 +27,7 @@ public interface ITool
     /// <param name="cancellationToken">취소 토큰</param>
     /// <returns>실행 결과</returns>
     Task<IToolResult> ExecuteAsync(IToolInput input, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// 입력 검증
     /// </summary>
