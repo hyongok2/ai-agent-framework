@@ -1,4 +1,5 @@
-﻿using AIAgentFramework.Tools.BuiltIn;
+﻿using AIAgentFramework.Tools.BuiltIn.Echo;
+using AIAgentFramework.Tools.BuiltIn.FileReader;
 using CoreModels = AIAgentFramework.Core.Models;
 
 Console.WriteLine("=== AI Agent Framework - EchoTool 테스트 ===\n");
@@ -37,5 +38,46 @@ var input3 = new { Message = "JSON 테스트", Value = 42 };
 var result3 = await echoTool.ExecuteAsync(input3, context);
 
 Console.WriteLine($"JSON 결과:\n{result3.ToJson()}\n");
+
+Console.WriteLine("=== EchoTool 테스트 완료 ===\n");
+
+// ========================================
+// FileReaderTool 테스트
+// ========================================
+
+Console.WriteLine("=== AI Agent Framework - FileReaderTool 테스트 ===\n");
+
+// 1. FileReaderTool 생성
+var fileReaderTool = new FileReaderTool();
+
+Console.WriteLine($"도구 이름: {fileReaderTool.Metadata.Name}");
+Console.WriteLine($"도구 설명: {fileReaderTool.Metadata.Description}");
+Console.WriteLine($"도구 타입: {fileReaderTool.Metadata.Type}\n");
+
+// 2. 테스트 1: 파일 읽기 성공
+Console.WriteLine("--- 테스트 1: 파일 읽기 성공 ---");
+var testFilePath = @"c:\src\work\ai\ai-agent-framework\test-data\sample.txt";
+Console.WriteLine($"파일 경로: {testFilePath}");
+var fileResult1 = await fileReaderTool.ExecuteAsync(testFilePath, context);
+
+Console.WriteLine($"성공 여부: {fileResult1.IsSuccess}");
+if (fileResult1.IsSuccess)
+{
+    Console.WriteLine($"결과:\n{fileResult1.ToJson()}\n");
+}
+
+// 3. 테스트 2: 파일 없음 (실패 예상)
+Console.WriteLine("--- 테스트 2: 존재하지 않는 파일 (실패 예상) ---");
+var fileResult2 = await fileReaderTool.ExecuteAsync("non-existent-file.txt", context);
+
+Console.WriteLine($"성공 여부: {fileResult2.IsSuccess}");
+Console.WriteLine($"에러 메시지: {fileResult2.ErrorMessage}\n");
+
+// 4. 테스트 3: null 입력 (실패 예상)
+Console.WriteLine("--- 테스트 3: null 입력 (실패 예상) ---");
+var fileResult3 = await fileReaderTool.ExecuteAsync(null, context);
+
+Console.WriteLine($"성공 여부: {fileResult3.IsSuccess}");
+Console.WriteLine($"에러 메시지: {fileResult3.ErrorMessage}\n");
 
 Console.WriteLine("=== 모든 테스트 완료 ===");

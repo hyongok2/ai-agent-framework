@@ -2,7 +2,7 @@ using AIAgentFramework.Core.Abstractions;
 using AIAgentFramework.Tools.Abstractions;
 using AIAgentFramework.Tools.Models;
 
-namespace AIAgentFramework.Tools.BuiltIn;
+namespace AIAgentFramework.Tools.BuiltIn.Echo;
 
 /// <summary>
 /// 가장 간단한 Tool - 입력을 그대로 반환
