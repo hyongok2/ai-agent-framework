@@ -54,6 +54,7 @@
 - public 멤버는 PascalCase를 사용한다
 - private 필드는 _camelCase를 사용한다
 - 메서드명은 동사로 시작하고 명확한 의도를 표현한다
+- 반드시 1파일 1Class 원칙을 준수한다
 
 ### 비동기 처리
 - 모든 I/O 작업은 async/await를 사용한다
