@@ -1,7 +1,39 @@
-﻿using AIAgentFramework.Tools.BuiltIn.Echo;
+﻿using System.Text;
+using AIAgentFramework.Tools.BuiltIn.Echo;
 using AIAgentFramework.Tools.BuiltIn.FileReader;
 using AIAgentFramework.Tools.Models;
+using AIAgentFramework.LLM.Providers;
 using CoreModels = AIAgentFramework.Core.Models;
+
+// 콘솔 UTF-8 인코딩 설정
+Console.OutputEncoding = Encoding.UTF8;
+
+// ========================================
+// Ollama Provider 테스트
+// ========================================
+
+Console.WriteLine("=== AI Agent Framework - Ollama Provider 테스트 ===\n");
+
+var ollama = new OllamaProvider("http://192.168.25.50:11434", "gpt-oss:20b");
+
+Console.WriteLine($"Provider: {ollama.ProviderName}");
+Console.WriteLine($"Supported Models: {string.Join(", ", ollama.SupportedModels)}\n");
+
+Console.WriteLine("--- 테스트 1: 일반 호출 ---");
+var ollamaResponse = await ollama.CallAsync("Say hello in Korean!", "gpt-oss:20b");
+Console.WriteLine($"응답: {ollamaResponse}\n");
+
+Console.WriteLine("--- 테스트 2: 스트리밍 호출 ---");
+Console.Write("응답: ");
+await foreach (var chunk in ollama.CallStreamAsync("한국어로 AI에 대해 구체적으로 상세히 설명해줘", "gpt-oss:20b"))
+{
+    Console.Write(chunk);
+}
+Console.WriteLine("\n");
+
+Console.WriteLine("=== Ollama Provider 테스트 완료 ===\n");
+Console.WriteLine("=".PadRight(50, '='));
+Console.WriteLine();
 
 Console.WriteLine("=== AI Agent Framework - ToolRegistry 테스트 ===\n");
 

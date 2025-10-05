@@ -9,7 +9,10 @@
       "Bash(dir /S /B c:srcworkaiai-agent-frameworksrc*.cs)",
       "Bash(dotnet build:*)",
       "Bash(dotnet new:*)",
-      "Bash(dotnet run:*)"
+      "Bash(dotnet run:*)",
+      "Bash(curl:*)",
+      "Bash(del \"c:\\src\\work\\ai\\ai-agent-framework\\src\\Core\\AIAgentFramework.LLM\\Models\\OllamaResult.cs\")",
+      "Bash(dotnet add:*)"
     ],
     "deny": [],
     "ask": []
