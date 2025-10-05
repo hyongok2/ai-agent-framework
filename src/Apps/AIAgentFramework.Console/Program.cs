@@ -5,6 +5,7 @@ using AIAgentFramework.Tools.Models;
 using AIAgentFramework.LLM.Providers;
 using AIAgentFramework.LLM.Models;
 using AIAgentFramework.LLM.Abstractions;
+using AIAgentFramework.LLM.Services.ToolSelection;
 using CoreModels = AIAgentFramework.Core.Models;
 
 // 콘솔 UTF-8 인코딩 설정
@@ -84,6 +85,40 @@ var toolSelectionResponse = await ollama.CallAsync(renderedPrompt, "llama3.1:8b"
 Console.WriteLine($"LLM 응답:\n{toolSelectionResponse}\n");
 
 Console.WriteLine("=== PromptRegistry 테스트 완료 ===\n");
+Console.WriteLine("=".PadRight(50, '='));
+Console.WriteLine();
+
+// ========================================
+// ToolSelectorFunction 테스트
+// ========================================
+
+Console.WriteLine("=== AI Agent Framework - ToolSelectorFunction 테스트 ===\n");
+
+// 1. ToolSelectorFunction 생성
+var toolSelectorFunction = new ToolSelectorFunction(
+    promptRegistry,
+    ollama,
+    toolRegistry
+);
+
+// 2. LLMContext 준비
+var context = new LLMContext
+{
+    UserInput = "c:\\test-data\\sample.txt 파일을 읽어줘"
+};
+
+Console.WriteLine($"사용자 요청: {context.UserInput}\n");
+Console.WriteLine("--- ToolSelectorFunction 실행 중... ---");
+
+var llmResult = await toolSelectorFunction.ExecuteAsync(context);
+var toolSelection = (ToolSelectionResult)llmResult.ParsedData!;
+
+Console.WriteLine($"선택된 Tool: {toolSelection.ToolName}");
+Console.WriteLine($"파라미터: {toolSelection.Parameters}");
+Console.WriteLine($"LLM Role: {llmResult.Role}");
+Console.WriteLine($"원본 응답:\n{llmResult.RawResponse}\n");
+
+Console.WriteLine("=== ToolSelectorFunction 테스트 완료 ===\n");
 Console.WriteLine("=".PadRight(50, '='));
 Console.WriteLine();
 

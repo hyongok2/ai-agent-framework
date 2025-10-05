@@ -12,7 +12,8 @@
       "Bash(dotnet run:*)",
       "Bash(curl:*)",
       "Bash(del \"c:\\src\\work\\ai\\ai-agent-framework\\src\\Core\\AIAgentFramework.LLM\\Models\\OllamaResult.cs\")",
-      "Bash(dotnet add:*)"
+      "Bash(dotnet add:*)",
+      "Bash(del \"c:\\src\\work\\ai\\ai-agent-framework\\src\\Core\\AIAgentFramework.LLM\\Models\\ToolSelectionInput.cs\")"
     ],
     "deny": [],
     "ask": []
