@@ -7,7 +7,9 @@
       "Bash(copy:*)",
       "Bash(tree:*)",
       "Bash(dir /S /B c:srcworkaiai-agent-frameworksrc*.cs)",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet run:*)"
     ],
     "deny": [],
     "ask": []
