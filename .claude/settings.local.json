@@ -4,7 +4,10 @@
       "Bash(Stop-Process -Force)",
       "Bash(pkill:*)",
       "Bash(taskkill:*)",
-      "Bash(copy:*)"
+      "Bash(copy:*)",
+      "Bash(tree:*)",
+      "Bash(dir /S /B c:srcworkaiai-agent-frameworksrc*.cs)",
+      "Bash(dotnet build:*)"
     ],
     "deny": [],
     "ask": []
