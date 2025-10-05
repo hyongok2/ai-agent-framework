@@ -1,11 +1,44 @@
 ﻿using AIAgentFramework.Tools.BuiltIn.Echo;
 using AIAgentFramework.Tools.BuiltIn.FileReader;
+using AIAgentFramework.Tools.Models;
 using CoreModels = AIAgentFramework.Core.Models;
 
-Console.WriteLine("=== AI Agent Framework - EchoTool 테스트 ===\n");
+Console.WriteLine("=== AI Agent Framework - ToolRegistry 테스트 ===\n");
 
-// 1. EchoTool 생성
+// 1. ToolRegistry 생성
+var registry = new ToolRegistry();
+
+// 2. Tool 등록
 var echoTool = new EchoTool();
+var fileReaderTool = new FileReaderTool();
+
+registry.Register(echoTool);
+registry.Register(fileReaderTool);
+
+Console.WriteLine($"등록된 Tool 수: {registry.GetAllTools().Count}");
+
+// 3. 이름으로 Tool 조회
+var foundTool = registry.GetTool("echo");
+Console.WriteLine($"조회된 Tool: {foundTool?.Metadata.Name ?? "없음"}");
+
+// 4. 타입별 Tool 조회
+var builtInTools = registry.GetToolsByType(AIAgentFramework.Tools.Abstractions.ToolType.BuiltIn);
+Console.WriteLine($"\nBuilt-In Tools: {builtInTools.Count}개");
+foreach (var tool in builtInTools)
+{
+    Console.WriteLine($"  - {tool.Metadata.Name}: {tool.Metadata.Description}");
+}
+
+// 5. LLM용 Tool 설명 생성
+Console.WriteLine("\n--- LLM용 Tool 설명 (JSON) ---");
+var toolDescriptions = registry.GetToolDescriptionsForLLM();
+Console.WriteLine(toolDescriptions);
+
+Console.WriteLine("\n=== ToolRegistry 테스트 완료 ===\n");
+Console.WriteLine("=".PadRight(50, '='));
+Console.WriteLine();
+
+Console.WriteLine("=== AI Agent Framework - EchoTool 테스트 ===\n");
 
 Console.WriteLine($"도구 이름: {echoTool.Metadata.Name}");
 Console.WriteLine($"도구 설명: {echoTool.Metadata.Description}");
@@ -46,9 +79,6 @@ Console.WriteLine("=== EchoTool 테스트 완료 ===\n");
 // ========================================
 
 Console.WriteLine("=== AI Agent Framework - FileReaderTool 테스트 ===\n");
-
-// 1. FileReaderTool 생성
-var fileReaderTool = new FileReaderTool();
 
 Console.WriteLine($"도구 이름: {fileReaderTool.Metadata.Name}");
 Console.WriteLine($"도구 설명: {fileReaderTool.Metadata.Description}");
