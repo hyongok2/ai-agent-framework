@@ -1,5 +1,6 @@
 using System.Text.Json;
 using AIAgentFramework.LLM.Abstractions;
+using AIAgentFramework.LLM.Extensions;
 using AIAgentFramework.LLM.Models;
 using AIAgentFramework.Tools.Abstractions;
 
@@ -15,8 +16,9 @@ public class ToolSelectorFunction : LLMFunctionBase<ToolSelectionInput, ToolSele
     public ToolSelectorFunction(
         IPromptRegistry promptRegistry,
         ILLMProvider llmProvider,
-        IToolRegistry toolRegistry)
-        : base(promptRegistry, llmProvider)
+        IToolRegistry toolRegistry,
+        LLMFunctionOptions? options = null)
+        : base(promptRegistry, llmProvider, options)
     {
         _toolRegistry = toolRegistry ?? throw new ArgumentNullException(nameof(toolRegistry));
     }
@@ -32,8 +34,8 @@ public class ToolSelectorFunction : LLMFunctionBase<ToolSelectionInput, ToolSele
         return new ToolSelectionInput
         {
             UserRequest = context.UserInput,
-            Context = context.Parameters.TryGetValue("CONTEXT", out var ctx) ? ctx?.ToString() : null,
-            History = context.Parameters.TryGetValue("HISTORY", out var hist) ? hist?.ToString() : null
+            Context = context.Get<string>("CONTEXT"),
+            History = context.Get<string>("HISTORY")
         };
     }
 

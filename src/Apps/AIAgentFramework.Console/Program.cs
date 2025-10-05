@@ -122,4 +122,58 @@ Console.WriteLine("=== ToolSelectorFunction 테스트 완료 ===\n");
 Console.WriteLine("=".PadRight(50, '='));
 Console.WriteLine();
 
+// ========================================
+// LLMFunctionOptions & Streaming 테스트
+// ========================================
+
+Console.WriteLine("=== AI Agent Framework - Streaming 테스트 ===\n");
+
+// 1. 스트리밍 옵션으로 ToolSelectorFunction 생성
+var streamingOptions = new LLMFunctionOptions
+{
+    ModelName = "gpt-oss:20b",
+    EnableStreaming = true,
+    TimeoutMs = 60000
+};
+
+var streamingToolSelector = new ToolSelectorFunction(
+    promptRegistry,
+    ollama,
+    toolRegistry,
+    streamingOptions
+);
+
+Console.WriteLine($"스트리밍 지원: {streamingToolSelector.SupportsStreaming}");
+Console.WriteLine($"모델: {streamingOptions.ModelName}\n");
+
+// 2. 스트리밍 실행
+var streamingContext = new LLMContext
+{
+    UserInput = "안녕이라고 메시지 출력해줘"
+};
+
+Console.WriteLine($"사용자 요청: {streamingContext.UserInput}\n");
+Console.WriteLine("--- 스트리밍 응답 수신 중... ---");
+Console.Write("응답: ");
+
+var fullResponse = new StringBuilder();
+await foreach (var chunk in streamingToolSelector.ExecuteStreamAsync(streamingContext))
+{
+    if (!chunk.IsFinal && !string.IsNullOrEmpty(chunk.Content))
+    {
+        Console.Write(chunk.Content);
+        fullResponse.Append(chunk.Content);
+    }
+    else if (chunk.IsFinal)
+    {
+        Console.WriteLine($"\n\n누적 토큰: {chunk.AccumulatedTokens}");
+        Console.WriteLine($"총 청크 수: {chunk.Index}");
+    }
+}
+
+Console.WriteLine("\n");
+Console.WriteLine("=== Streaming 테스트 완료 ===\n");
+Console.WriteLine("=".PadRight(50, '='));
+Console.WriteLine();
+
 Console.WriteLine("=== 모든 테스트 완료 ===");

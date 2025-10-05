@@ -1,5 +1,6 @@
 using AIAgentFramework.LLM.Abstractions;
 using AIAgentFramework.LLM.Models;
+using System.Runtime.CompilerServices;
 
 namespace AIAgentFramework.LLM.Services;
 
@@ -11,18 +12,23 @@ public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction
 {
     protected readonly IPromptRegistry PromptRegistry;
     protected readonly ILLMProvider LLMProvider;
+    protected readonly LLMFunctionOptions Options;
 
-    protected LLMFunctionBase(IPromptRegistry promptRegistry, ILLMProvider llmProvider)
+    protected LLMFunctionBase(
+        IPromptRegistry promptRegistry,
+        ILLMProvider llmProvider,
+        LLMFunctionOptions? options = null)
     {
         PromptRegistry = promptRegistry ?? throw new ArgumentNullException(nameof(promptRegistry));
         LLMProvider = llmProvider ?? throw new ArgumentNullException(nameof(llmProvider));
+        Options = options ?? LLMFunctionOptions.Default;
     }
 
     public abstract LLMRole Role { get; }
 
     public abstract string Description { get; }
 
-    public virtual bool SupportsStreaming => false;
+    public virtual bool SupportsStreaming => Options.EnableStreaming;
 
     public async Task<ILLMResult> ExecuteAsync(ILLMContext context, CancellationToken cancellationToken = default)
     {
@@ -43,11 +49,50 @@ public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction
         return CreateResult(rawResponse, output);
     }
 
-    public virtual IAsyncEnumerable<ILLMStreamChunk> ExecuteStreamAsync(
+    public virtual async IAsyncEnumerable<ILLMStreamChunk> ExecuteStreamAsync(
         ILLMContext context,
-        CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        throw new NotSupportedException($"{Role} does not support streaming");
+        if (!SupportsStreaming)
+        {
+            throw new NotSupportedException($"{Role} does not support streaming");
+        }
+
+        var input = ExtractInput(context);
+        var variables = PrepareVariables(input);
+        var validation = ValidateVariables(variables);
+
+        if (!validation.IsValid)
+        {
+            throw new InvalidOperationException(validation.ErrorMessage);
+        }
+
+        var prompt = LoadPrompt();
+        var rendered = prompt.Render(variables);
+
+        var index = 0;
+        var accumulatedTokens = 0;
+
+        await foreach (var chunk in CallLLMStreamAsync(rendered, cancellationToken))
+        {
+            accumulatedTokens += chunk.Length / 4; // 대략적인 토큰 추정
+
+            yield return new LLMStreamChunk
+            {
+                Index = index++,
+                Content = chunk,
+                IsFinal = false,
+                AccumulatedTokens = accumulatedTokens
+            };
+        }
+
+        yield return new LLMStreamChunk
+        {
+            Index = index,
+            Content = string.Empty,
+            IsFinal = true,
+            AccumulatedTokens = accumulatedTokens
+        };
     }
 
     protected abstract TInput ExtractInput(ILLMContext context);
@@ -74,11 +119,11 @@ public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction
 
     protected virtual async Task<string> CallLLMAsync(string prompt, CancellationToken cancellationToken)
     {
-        return await LLMProvider.CallAsync(prompt, GetModelName(), cancellationToken);
+        return await LLMProvider.CallAsync(prompt, Options.ModelName, cancellationToken);
     }
 
-    protected virtual string GetModelName()
+    protected virtual IAsyncEnumerable<string> CallLLMStreamAsync(string prompt, CancellationToken cancellationToken)
     {
-        return "gpt-oss:20b";
+        return LLMProvider.CallStreamAsync(prompt, Options.ModelName, cancellationToken);
     }
 }
