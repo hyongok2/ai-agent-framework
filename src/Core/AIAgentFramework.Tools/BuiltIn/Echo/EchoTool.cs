@@ -21,7 +21,21 @@ public class EchoTool : ITool
             type: ToolType.BuiltIn
         );
 
-        Contract = new ToolContract(requiresParameters: true);
+        Contract = new ToolContract(
+            requiresParameters: true,
+            inputSchema: """
+                {
+                    "type": "object",
+                    "description": "에코할 메시지 (모든 타입 허용)"
+                }
+                """,
+            outputSchema: """
+                {
+                    "type": "object",
+                    "description": "입력과 동일한 데이터"
+                }
+                """
+        );
     }
 
     public Task<IToolResult> ExecuteAsync(

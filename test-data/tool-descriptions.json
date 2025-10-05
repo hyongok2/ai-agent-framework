@@ -1,0 +1,36 @@
+[
+  {
+    "name": "Echo",
+    "description": "입력받은 메시지를 그대로 반환합니다.",
+    "type": "BuiltIn",
+    "requiresParameters": true,
+    "inputSchema": {
+      "type": "object",
+      "description": "에코할 메시지 (모든 타입 허용)"
+    },
+    "outputSchema": {
+      "type": "object",
+      "description": "입력과 동일한 데이터"
+    }
+  },
+  {
+    "name": "FileReader",
+    "description": "지정된 경로의 파일 내용을 읽어서 반환합니다.",
+    "type": "BuiltIn",
+    "requiresParameters": true,
+    "inputSchema": {
+      "type": "string",
+      "description": "읽을 파일의 경로 (절대 경로 또는 상대 경로)"
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "FilePath": { "type": "string", "description": "읽은 파일의 경로" },
+        "Content": { "type": "string", "description": "파일 내용" },
+        "Length": { "type": "integer", "description": "파일 내용 길이" },
+        "Lines": { "type": "integer", "description": "파일 줄 수" }
+      },
+      "required": ["FilePath", "Content", "Length", "Lines"]
+    }
+  }
+]

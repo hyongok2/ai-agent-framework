@@ -21,7 +21,27 @@ public class FileReaderTool : ITool
             type: ToolType.BuiltIn
         );
 
-        Contract = new ToolContract(requiresParameters: true);
+        Contract = new ToolContract(
+            requiresParameters: true,
+            inputSchema: """
+                {
+                    "type": "string",
+                    "description": "읽을 파일의 경로 (절대 경로 또는 상대 경로)"
+                }
+                """,
+            outputSchema: """
+                {
+                    "type": "object",
+                    "properties": {
+                        "FilePath": { "type": "string", "description": "읽은 파일의 경로" },
+                        "Content": { "type": "string", "description": "파일 내용" },
+                        "Length": { "type": "integer", "description": "파일 내용 길이" },
+                        "Lines": { "type": "integer", "description": "파일 줄 수" }
+                    },
+                    "required": ["FilePath", "Content", "Length", "Lines"]
+                }
+                """
+        );
     }
 
     public async Task<IToolResult> ExecuteAsync(

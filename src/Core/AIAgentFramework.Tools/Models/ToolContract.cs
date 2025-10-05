@@ -13,14 +13,18 @@ public class ToolContract : IToolContract
 
     public ToolContract() { }
 
-    public ToolContract(bool requiresParameters)
+    public ToolContract(
+        bool requiresParameters,
+        string? inputSchema = null,
+        string? outputSchema = null)
     {
         RequiresParameters = requiresParameters;
+        InputSchema = inputSchema ?? "{}";
+        OutputSchema = outputSchema ?? "{}";
     }
 
     public bool ValidateInput(object? input)
     {
-        // 간단한 구현: null 체크만
         if (RequiresParameters && input == null)
         {
             return false;
