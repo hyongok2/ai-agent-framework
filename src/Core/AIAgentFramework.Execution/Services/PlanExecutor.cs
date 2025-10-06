@@ -35,14 +35,19 @@ public class PlanExecutor : IExecutor
         Action<string>? onStreamChunk = null,
         CancellationToken cancellationToken = default)
     {
+        var startedAt = DateTimeOffset.UtcNow;
+
         if (!input.Plan.IsExecutable)
         {
+            var completedAt = DateTimeOffset.UtcNow;
             return new ExecutionResult
             {
                 IsSuccess = false,
                 Steps = new List<StepExecutionResult>(),
                 ErrorMessage = $"계획이 실행 불가능합니다: {input.Plan.ExecutionBlocker}",
-                TotalExecutionTimeMs = 0
+                TotalExecutionTimeMs = 0,
+                StartedAt = startedAt,
+                CompletedAt = completedAt
             };
         }
 
@@ -61,12 +66,15 @@ public class PlanExecutor : IExecutor
             if (!stepResult.IsSuccess)
             {
                 totalStopwatch.Stop();
+                var completedAt = DateTimeOffset.UtcNow;
                 return new ExecutionResult
                 {
                     IsSuccess = false,
                     Steps = stepResults,
                     ErrorMessage = $"Step {step.StepNumber} 실행 실패: {stepResult.ErrorMessage}",
-                    TotalExecutionTimeMs = totalStopwatch.ElapsedMilliseconds
+                    TotalExecutionTimeMs = totalStopwatch.ElapsedMilliseconds,
+                    StartedAt = startedAt,
+                    CompletedAt = completedAt
                 };
             }
 
@@ -78,13 +86,16 @@ public class PlanExecutor : IExecutor
         }
 
         totalStopwatch.Stop();
+        var finalCompletedAt = DateTimeOffset.UtcNow;
 
         return new ExecutionResult
         {
             IsSuccess = true,
             Steps = stepResults,
             Summary = $"{stepResults.Count}개 단계 모두 성공적으로 완료",
-            TotalExecutionTimeMs = totalStopwatch.ElapsedMilliseconds
+            TotalExecutionTimeMs = totalStopwatch.ElapsedMilliseconds,
+            StartedAt = startedAt,
+            CompletedAt = finalCompletedAt
         };
     }
 

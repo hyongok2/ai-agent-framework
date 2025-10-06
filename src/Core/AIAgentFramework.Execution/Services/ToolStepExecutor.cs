@@ -1,5 +1,6 @@
 using System.Text.Json;
 using AIAgentFramework.Core.Abstractions;
+using AIAgentFramework.Core.Models;
 using AIAgentFramework.Execution.Abstractions;
 using AIAgentFramework.Execution.Models;
 using AIAgentFramework.LLM.Services.Planning;
@@ -28,7 +29,8 @@ public class ToolStepExecutor : IStepExecutor
         }
 
         var tool = executable.Tool;
-        var toolContext = Core.Models.ExecutionContext.Create();
+        // Tool에 전달할 컨텍스트 (메타정보만 필요, 변수는 불필요)
+        var toolContext = AgentContext.Create(agentContext.UserId);
         object? toolInput = parameters;
 
         // JSON 문자열이면 파싱

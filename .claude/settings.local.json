@@ -33,7 +33,8 @@
       "Bash(dir:*)",
       "Bash(timeout:*)",
       "Bash(echo:*)",
-      "Bash(printf \"3\\n\")"
+      "Bash(printf \"3\\n\")",
+      "Bash(Remove-Item \"c:\\src\\work\\ai\\ai-agent-framework\\src\\Core\\AIAgentFramework.Core\\Models\\ExecutionContext.cs\" -Force)"
     ],
     "deny": [],
     "ask": []

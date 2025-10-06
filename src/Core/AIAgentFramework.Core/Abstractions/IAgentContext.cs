@@ -1,14 +1,15 @@
 namespace AIAgentFramework.Core.Abstractions;
 
 /// <summary>
-/// Agent 전체에서 공유되는 글로벌 컨텍스트
-/// - Plan 실행 중 모든 Step 결과 저장
-/// - LLM 호출 시 치환 변수로 사용
+/// Agent 전체 컨텍스트 - 실행 메타정보 + 동적 변수 저장소
+/// - IExecutionContext: 실행 메타정보 (ExecutionId, UserId, SessionId 등)
+/// - 동적 변수: Plan 실행 중 Step 간 데이터 공유 (fileContent, summary 등)
+/// - LLM 호출 시 변수 치환에 사용
 /// </summary>
-public interface IAgentContext
+public interface IAgentContext : IExecutionContext
 {
     /// <summary>
-    /// 컨텍스트 변수 저장소
+    /// 컨텍스트 변수 저장소 (Step 간 데이터 공유용)
     /// </summary>
     Dictionary<string, object> Variables { get; }
 
