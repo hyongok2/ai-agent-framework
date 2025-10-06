@@ -34,6 +34,24 @@
           "complexity": "high"
         }
       }
+    },
+    {
+      "name": "parameter-generation",
+      "role": "ToolParameterSetter",
+      "templatePath": "parameter-generation.md",
+      "requiredVariables": ["USER_REQUEST", "TOOL_NAME", "TOOL_INPUT_SCHEMA", "STEP_DESCRIPTION"],
+      "optionalVariables": ["PREVIOUS_RESULTS", "ADDITIONAL_CONTEXT"],
+      "metadata": {
+        "version": "1.0",
+        "description": "Tool 실행에 필요한 정확한 파라미터 생성",
+        "author": "System",
+        "createdAt": "2025-10-06T00:00:00Z",
+        "tags": {
+          "category": "parameter-generation",
+          "outputFormat": "json",
+          "complexity": "medium"
+        }
+      }
     }
   ]
 }

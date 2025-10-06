@@ -11,6 +11,8 @@ using AIAgentFramework.LLM.Models;
 using AIAgentFramework.LLM.Abstractions;
 using AIAgentFramework.LLM.Services.ToolSelection;
 using AIAgentFramework.LLM.Services.Planning;
+using AIAgentFramework.LLM.Services.ParameterGeneration;
+using AIAgentFramework.LLM.Extensions;
 using CoreModels = AIAgentFramework.Core.Models;
 
 // 콘솔 UTF-8 인코딩 설정
@@ -50,6 +52,7 @@ while (true)
     Console.WriteLine("║  3. ToolSelectorFunction 테스트                ║");
     Console.WriteLine("║  4. Streaming 테스트                           ║");
     Console.WriteLine("║  5. TaskPlanner 테스트                         ║");
+    Console.WriteLine("║  6. ParameterGenerator 테스트                  ║");
     Console.WriteLine("║  0. 종료                                        ║");
     Console.WriteLine("╚════════════════════════════════════════════════╝");
     Console.Write("\n선택: ");
@@ -74,6 +77,9 @@ while (true)
                 break;
             case "5":
                 await TestTaskPlanner(promptRegistry, toolRegistry, llmRegistry, ollama);
+                break;
+            case "6":
+                await TestParameterGenerator(promptRegistry, toolRegistry, ollama);
                 break;
             case "0":
                 Console.WriteLine("\n프로그램을 종료합니다.");
@@ -299,4 +305,101 @@ static async Task TestTaskPlanner(PromptRegistry promptRegistry, ToolRegistry to
     Console.WriteLine($"\n\n원본 LLM 응답:\n{planResult.RawResponse}\n");
 
     Console.WriteLine("=== TaskPlanner 테스트 완료 ===");
+}
+
+static async Task TestParameterGenerator(PromptRegistry promptRegistry, ToolRegistry toolRegistry, OllamaProvider ollama)
+{
+    Console.Clear();
+    Console.WriteLine("=== AI Agent Framework - ParameterGenerator 테스트 ===\n");
+
+    var paramGenerator = new ParameterGeneratorFunction(
+        promptRegistry,
+        ollama
+    );
+
+    // 시나리오 1: DirectoryReader 파라미터 생성
+    Console.WriteLine("--- 시나리오 1: DirectoryReader 파라미터 생성 ---\n");
+
+    var tool = toolRegistry.GetTool("DirectoryReader")!;
+    var parameters1 = new Dictionary<string, object>
+    {
+        ["TOOL_NAME"] = tool.Metadata.Name,
+        ["TOOL_INPUT_SCHEMA"] = tool.Contract.InputSchema,
+        ["STEP_DESCRIPTION"] = "c:\\test-data 디렉토리에서 txt 파일 목록 조회"
+    };
+
+    var context1 = new LLMContext
+    {
+        UserInput = "c:\\test-data 폴더의 모든 txt 파일 목록을 보여줘",
+        Parameters = parameters1
+    };
+
+    Console.WriteLine($"사용자 요청: {context1.UserInput}");
+    Console.WriteLine($"Tool: {tool.Metadata.Name}");
+    Console.WriteLine($"Step: {context1.Get<string>("STEP_DESCRIPTION")}\n");
+    Console.WriteLine("--- ParameterGenerator 실행 중... ---\n");
+
+    var result1 = await paramGenerator.ExecuteAsync(context1);
+    var paramResult1 = (ParameterGenerationResult)result1.ParsedData!;
+
+    Console.WriteLine($"✅ Valid: {paramResult1.IsValid}");
+    Console.WriteLine($"🔧 Tool: {paramResult1.ToolName}");
+    Console.WriteLine($"📝 Parameters: {paramResult1.Parameters}");
+    if (!string.IsNullOrEmpty(paramResult1.Reasoning))
+    {
+        Console.WriteLine($"💡 Reasoning: {paramResult1.Reasoning}");
+    }
+    if (!string.IsNullOrEmpty(paramResult1.ErrorMessage))
+    {
+        Console.WriteLine($"❌ Error: {paramResult1.ErrorMessage}");
+    }
+
+    // 시나리오 2: FileWriter 파라미터 생성 (이전 결과 활용)
+    Console.WriteLine("\n\n--- 시나리오 2: FileWriter 파라미터 생성 (이전 결과 활용) ---\n");
+
+    var fileWriterTool = toolRegistry.GetTool("FileWriter")!;
+
+    // 이전 단계 결과 시뮬레이션
+    var previousResults = JsonSerializer.Serialize(new
+    {
+        SummaryText = "총 5개의 파일을 분석했습니다. 주요 내용은 AI 에이전트 프레임워크에 관한 것입니다.",
+        FileCount = 5
+    });
+
+    var parameters2 = new Dictionary<string, object>
+    {
+        ["TOOL_NAME"] = fileWriterTool.Metadata.Name,
+        ["TOOL_INPUT_SCHEMA"] = fileWriterTool.Contract.InputSchema,
+        ["STEP_DESCRIPTION"] = "요약 결과를 summary.txt 파일로 저장",
+        ["PREVIOUS_RESULTS"] = previousResults
+    };
+
+    var context2 = new LLMContext
+    {
+        UserInput = "결과를 summary.txt 파일로 저장해줘",
+        Parameters = parameters2
+    };
+
+    Console.WriteLine($"사용자 요청: {context2.UserInput}");
+    Console.WriteLine($"Tool: {fileWriterTool.Metadata.Name}");
+    Console.WriteLine($"Step: {context2.Get<string>("STEP_DESCRIPTION")}");
+    Console.WriteLine($"Previous Results: {previousResults}\n");
+    Console.WriteLine("--- ParameterGenerator 실행 중... ---\n");
+
+    var result2 = await paramGenerator.ExecuteAsync(context2);
+    var paramResult2 = (ParameterGenerationResult)result2.ParsedData!;
+
+    Console.WriteLine($"✅ Valid: {paramResult2.IsValid}");
+    Console.WriteLine($"🔧 Tool: {paramResult2.ToolName}");
+    Console.WriteLine($"📝 Parameters: {paramResult2.Parameters}");
+    if (!string.IsNullOrEmpty(paramResult2.Reasoning))
+    {
+        Console.WriteLine($"💡 Reasoning: {paramResult2.Reasoning}");
+    }
+    if (!string.IsNullOrEmpty(paramResult2.ErrorMessage))
+    {
+        Console.WriteLine($"❌ Error: {paramResult2.ErrorMessage}");
+    }
+
+    Console.WriteLine("\n\n=== ParameterGenerator 테스트 완료 ===");
 }
