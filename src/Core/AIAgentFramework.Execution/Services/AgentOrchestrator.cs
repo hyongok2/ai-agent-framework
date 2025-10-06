@@ -261,11 +261,23 @@ public class AgentOrchestrator : IOrchestrator
             UserRequest = userInput
         };
 
+        // 스트리밍 청크를 수집하기 위한 리스트
+        var executionChunks = new List<string>();
+
         var executionResult = await _planExecutor.ExecuteAsync(
             executionInput,
             context,
-            onStreamChunk: (chunk) => { },  // 콘솔 출력은 PlanExecutor 내부에서 처리
+            onStreamChunk: (chunk) =>
+            {
+                executionChunks.Add(chunk);
+            },
             cancellationToken: cancellationToken);
+
+        // 수집한 스트리밍 청크들을 yield
+        foreach (var chunk in executionChunks)
+        {
+            yield return StreamChunk.Text(chunk);
+        }
 
         if (!executionResult.IsSuccess)
         {
