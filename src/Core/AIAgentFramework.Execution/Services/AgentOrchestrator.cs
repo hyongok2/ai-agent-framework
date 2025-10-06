@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text;
 using AIAgentFramework.Core.Abstractions;
 using AIAgentFramework.Core.Models;
 using AIAgentFramework.Execution.Models;
@@ -23,6 +24,47 @@ public class AgentOrchestrator : IOrchestrator
     {
         _llmRegistry = llmRegistry ?? throw new ArgumentNullException(nameof(llmRegistry));
         _planExecutor = planExecutor ?? throw new ArgumentNullException(nameof(planExecutor));
+    }
+
+    private static string FormatStepResults(List<StepExecutionResult> steps)
+    {
+        if (steps == null || steps.Count == 0)
+        {
+            return "No step results available";
+        }
+
+        var sb = new StringBuilder();
+        sb.AppendLine("```");
+
+        foreach (var step in steps)
+        {
+            sb.AppendLine($"### Step {step.StepNumber}: {step.Description}");
+            sb.AppendLine($"Tool: {step.ToolName}");
+            sb.AppendLine($"Status: {(step.IsSuccess ? "✅ Success" : "❌ Failed")}");
+            sb.AppendLine($"Execution Time: {step.ExecutionTimeMs}ms");
+
+            if (!string.IsNullOrEmpty(step.Parameters))
+            {
+                sb.AppendLine($"Input Parameters:");
+                sb.AppendLine(step.Parameters);
+            }
+
+            if (!string.IsNullOrEmpty(step.Output))
+            {
+                sb.AppendLine($"Output:");
+                sb.AppendLine(step.Output);
+            }
+
+            if (!string.IsNullOrEmpty(step.ErrorMessage))
+            {
+                sb.AppendLine($"Error: {step.ErrorMessage}");
+            }
+
+            sb.AppendLine();
+        }
+
+        sb.AppendLine("```");
+        return sb.ToString();
     }
 
     public async Task<IResult> ExecuteAsync(
@@ -106,6 +148,7 @@ public class AgentOrchestrator : IOrchestrator
             {
                 TaskDescription = userInput,
                 ExecutionResult = executionResult.Summary ?? "실행 완료",
+                DetailedStepResults = FormatStepResults(executionResult.Steps),
                 ExpectedOutcome = null,
                 EvaluationCriteria = null
             };
@@ -211,6 +254,7 @@ public class AgentOrchestrator : IOrchestrator
         {
             TaskDescription = userInput,
             ExecutionResult = executionResult.Summary ?? "실행 완료",
+            DetailedStepResults = FormatStepResults(executionResult.Steps),
             ExpectedOutcome = null,
             EvaluationCriteria = null
         };

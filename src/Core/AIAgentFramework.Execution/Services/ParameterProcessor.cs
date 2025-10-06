@@ -146,17 +146,31 @@ public class ParameterProcessor : IParameterProcessor
     }
 
     /// <summary>
-    /// JSON 객체인 경우 Content 속성 자동 추출 (레거시 호환)
+    /// JSON 객체인 경우 의미있는 콘텐츠 속성 자동 추출
+    /// 우선순위: TransformedText > Content > Output > Result > 전체 JSON
     /// </summary>
     private string ExtractContentFromJson(string value)
     {
         try
         {
             var jsonDoc = JsonDocument.Parse(value);
-            if (jsonDoc.RootElement.TryGetProperty("Content", out var contentProp))
+            var root = jsonDoc.RootElement;
+
+            // 우선순위에 따라 속성 추출 시도
+            var candidateProperties = new[] { "TransformedText", "Content", "Output", "Result", "Data" };
+
+            foreach (var propName in candidateProperties)
             {
-                return contentProp.GetString() ?? value;
+                if (root.TryGetProperty(propName, out var prop))
+                {
+                    return prop.ValueKind == JsonValueKind.String
+                        ? prop.GetString() ?? value
+                        : prop.ToString();
+                }
             }
+
+            // 적합한 속성이 없으면 전체 JSON 반환
+            return value;
         }
         catch
         {

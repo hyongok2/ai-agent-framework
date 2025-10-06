@@ -11,9 +11,14 @@ public class EvaluationInput
     public required string TaskDescription { get; init; }
 
     /// <summary>
-    /// 평가할 실행 결과
+    /// 평가할 실행 결과 요약
     /// </summary>
     public required string ExecutionResult { get; init; }
+
+    /// <summary>
+    /// 각 단계별 상세 실행 결과
+    /// </summary>
+    public string? DetailedStepResults { get; init; }
 
     /// <summary>
     /// 기대 결과 (선택적)

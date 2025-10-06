@@ -44,6 +44,7 @@ public class EvaluatorFunction : LLMFunctionBase<EvaluationInput, EvaluationResu
             ["CURRENT_TIME"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
             ["TASK_DESCRIPTION"] = input.TaskDescription,
             ["EXECUTION_RESULT"] = input.ExecutionResult,
+            ["DETAILED_STEP_RESULTS"] = input.DetailedStepResults ?? "No detailed step results provided",
             ["EXPECTED_OUTCOME"] = input.ExpectedOutcome ?? "Not specified",
             ["EVALUATION_CRITERIA"] = input.EvaluationCriteria ?? "Standard quality criteria: correctness, completeness, accuracy, format compliance"
         };
