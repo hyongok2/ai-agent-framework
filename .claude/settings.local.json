@@ -43,7 +43,9 @@
       "Bash(Select-Object -First 100)",
       "Read(//c/test-data/**)",
       "Bash(cat:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(Remove-Item -Path logs/*.json -Force -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object -First 150)"
     ],
     "deny": [],
     "ask": []

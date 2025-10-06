@@ -1,4 +1,5 @@
 using System.Text.Json;
+using AIAgentFramework.Core.Abstractions;
 using AIAgentFramework.LLM.Abstractions;
 using AIAgentFramework.LLM.Extensions;
 using AIAgentFramework.LLM.Models;
@@ -19,8 +20,9 @@ public class TaskPlannerFunction : LLMFunctionBase<PlanningInput, PlanningResult
         ILLMProvider llmProvider,
         IToolRegistry toolRegistry,
         ILLMRegistry llmRegistry,
-        LLMFunctionOptions? options = null)
-        : base(promptRegistry, llmProvider, options)
+        LLMFunctionOptions? options = null,
+        ILogger? logger = null)
+        : base(promptRegistry, llmProvider, options, logger)
     {
         _toolRegistry = toolRegistry ?? throw new ArgumentNullException(nameof(toolRegistry));
         _llmRegistry = llmRegistry ?? throw new ArgumentNullException(nameof(llmRegistry));

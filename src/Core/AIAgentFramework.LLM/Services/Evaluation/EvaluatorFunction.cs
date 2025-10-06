@@ -1,4 +1,5 @@
 using System.Text.Json;
+using AIAgentFramework.Core.Abstractions;
 using AIAgentFramework.LLM.Abstractions;
 using AIAgentFramework.LLM.Extensions;
 using AIAgentFramework.LLM.Models;
@@ -13,8 +14,9 @@ public class EvaluatorFunction : LLMFunctionBase<EvaluationInput, EvaluationResu
     public EvaluatorFunction(
         IPromptRegistry promptRegistry,
         ILLMProvider llmProvider,
-        LLMFunctionOptions? options = null)
-        : base(promptRegistry, llmProvider, options)
+        LLMFunctionOptions? options = null,
+        ILogger? logger = null)
+        : base(promptRegistry, llmProvider, options, logger)
     {
     }
 

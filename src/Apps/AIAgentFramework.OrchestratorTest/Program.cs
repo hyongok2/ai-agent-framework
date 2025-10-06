@@ -1,4 +1,6 @@
+using AIAgentFramework.Core.Abstractions;
 using AIAgentFramework.Core.Models;
+using AIAgentFramework.Core.Services;
 using AIAgentFramework.Execution.Abstractions;
 using AIAgentFramework.Execution.Services;
 using AIAgentFramework.LLM.Abstractions;
@@ -20,6 +22,9 @@ Console.WriteLine("║   AI Agent Framework - Orchestrator 테스트            
 Console.WriteLine("╚══════════════════════════════════════════════════════════╝");
 Console.WriteLine();
 
+// 0. 로거 설정
+var logger = new FileLogger("logs");
+
 // 1. 기본 인프라 설정
 var ollama = new OllamaProvider("http://192.168.25.50:11434", "gpt-oss:20b");
 var templatesPath = @"c:\src\work\ai\ai-agent-framework\src\Core\AIAgentFramework.LLM\Templates";
@@ -33,25 +38,25 @@ toolRegistry.Register(new TextTransformerTool());
 
 var llmRegistry = new LLMRegistry();
 
-// 2. LLM Functions 등록
+// 2. LLM Functions 등록 (logger 주입)
 var plannerOptions = new LLMFunctionOptions
 {
     EnableStreaming = true,
     ModelName = "gpt-oss:20b"
 };
 
-var planner = new TaskPlannerFunction(promptRegistry, ollama, toolRegistry, llmRegistry, plannerOptions);
-var parameterGenerator = new ParameterGeneratorFunction(promptRegistry, ollama, plannerOptions);
-var evaluator = new EvaluatorFunction(promptRegistry, ollama, plannerOptions);
+var planner = new TaskPlannerFunction(promptRegistry, ollama, toolRegistry, llmRegistry, plannerOptions, logger);
+var parameterGenerator = new ParameterGeneratorFunction(promptRegistry, ollama, plannerOptions, logger);
+var evaluator = new EvaluatorFunction(promptRegistry, ollama, plannerOptions, logger);
 
 llmRegistry.Register(planner);
 llmRegistry.Register(parameterGenerator);
 llmRegistry.Register(evaluator);
 
-// 3. Execution 구성요소 설정
+// 3. Execution 구성요소 설정 (logger 주입)
 var executableResolver = new ExecutableResolver(toolRegistry, llmRegistry);
 var parameterProcessor = new ParameterProcessor(parameterGenerator);
-var toolExecutor = new ToolStepExecutor();
+var toolExecutor = new ToolStepExecutor(logger);
 var llmExecutor = new LLMFunctionStepExecutor();
 
 var planExecutor = new PlanExecutor(

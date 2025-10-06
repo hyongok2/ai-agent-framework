@@ -1,9 +1,11 @@
+using System.Diagnostics;
 using System.Text.Json;
 using AIAgentFramework.Core.Abstractions;
 using AIAgentFramework.Core.Models;
 using AIAgentFramework.Execution.Abstractions;
 using AIAgentFramework.Execution.Models;
 using AIAgentFramework.LLM.Services.Planning;
+using AIAgentFramework.Tools.Abstractions;
 
 namespace AIAgentFramework.Execution.Services;
 
@@ -13,6 +15,12 @@ namespace AIAgentFramework.Execution.Services;
 public class ToolStepExecutor : IStepExecutor
 {
     private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = false };
+    private readonly ILogger? _logger;
+
+    public ToolStepExecutor(ILogger? logger = null)
+    {
+        _logger = logger;
+    }
 
     public async Task<StepExecutionResult> ExecuteAsync(
         TaskStep step,
@@ -28,51 +36,102 @@ public class ToolStepExecutor : IStepExecutor
             throw new ArgumentException("ExecutableItem must be a Tool", nameof(executable));
         }
 
+        var sw = Stopwatch.StartNew();
+        var executionId = Guid.NewGuid().ToString("N")[..8];
         var tool = executable.Tool;
-        // Tool에 전달할 컨텍스트 (메타정보만 필요, 변수는 불필요)
-        var toolContext = AgentContext.Create(agentContext.UserId);
-        object? toolInput = parameters;
+        IToolResult? toolResult = null;
+        Exception? error = null;
 
-        // JSON 문자열이면 Dictionary로 파싱
-        if (!string.IsNullOrEmpty(parameters))
+        try
         {
-            try
+            // Tool에 전달할 컨텍스트 (메타정보만 필요, 변수는 불필요)
+            var toolContext = AgentContext.Create(agentContext.UserId);
+            object? toolInput = parameters;
+
+            // JSON 문자열이면 Dictionary로 파싱
+            if (!string.IsNullOrEmpty(parameters))
             {
-                var jsonElement = JsonSerializer.Deserialize<JsonElement>(parameters);
-                toolInput = ConvertJsonElementToDictionary(jsonElement);
+                try
+                {
+                    var jsonElement = JsonSerializer.Deserialize<JsonElement>(parameters);
+                    toolInput = ConvertJsonElementToDictionary(jsonElement);
+                }
+                catch
+                {
+                    // JSON 파싱 실패하면 문자열 그대로 사용
+                    toolInput = parameters;
+                }
             }
-            catch
+
+            toolResult = await tool.ExecuteAsync(toolInput, toolContext, cancellationToken);
+
+            // Output을 JSON 직렬화
+            string? output = null;
+            if (toolResult.Data != null)
             {
-                // JSON 파싱 실패하면 문자열 그대로 사용
-                toolInput = parameters;
+                if (toolResult.Data is string str)
+                {
+                    output = str;
+                }
+                else
+                {
+                    output = JsonSerializer.Serialize(toolResult.Data, _jsonOptions);
+                }
             }
+
+            return new StepExecutionResult
+            {
+                StepNumber = step.StepNumber,
+                Description = step.Description,
+                ToolName = step.ToolName,
+                IsSuccess = toolResult.IsSuccess,
+                Output = output,
+                ErrorMessage = toolResult.ErrorMessage
+            };
         }
-
-        var toolResult = await tool.ExecuteAsync(toolInput, toolContext, cancellationToken);
-
-        // Output을 JSON 직렬화
-        string? output = null;
-        if (toolResult.Data != null)
+        catch (Exception ex)
         {
-            if (toolResult.Data is string str)
-            {
-                output = str;
-            }
-            else
-            {
-                output = JsonSerializer.Serialize(toolResult.Data, _jsonOptions);
-            }
+            error = ex;
+            throw;
         }
-
-        return new StepExecutionResult
+        finally
         {
-            StepNumber = step.StepNumber,
-            Description = step.Description,
-            ToolName = step.ToolName,
-            IsSuccess = toolResult.IsSuccess,
-            Output = output,
-            ErrorMessage = toolResult.ErrorMessage
-        };
+            sw.Stop();
+            await LogExecutionAsync(executionId, tool.Metadata.Name, parameters, toolResult, sw.ElapsedMilliseconds, error, cancellationToken);
+        }
+    }
+
+    private async Task LogExecutionAsync(
+        string executionId,
+        string toolName,
+        string? request,
+        IToolResult? result,
+        long durationMs,
+        Exception? error,
+        CancellationToken cancellationToken)
+    {
+        if (_logger == null) return;
+
+        try
+        {
+            var logEntry = LogEntry.Create(
+                logType: "Tool",
+                targetName: toolName,
+                executionId: executionId,
+                timestamp: DateTimeOffset.UtcNow,
+                request: request,
+                response: result,
+                durationMs: durationMs,
+                success: error == null && (result?.IsSuccess ?? false),
+                errorMessage: error?.Message ?? result?.ErrorMessage
+            );
+
+            await _logger.LogAsync(logEntry, cancellationToken);
+        }
+        catch
+        {
+            // 로깅 실패는 조용히 무시
+        }
     }
 
     private static Dictionary<string, object> ConvertJsonElementToDictionary(JsonElement element)

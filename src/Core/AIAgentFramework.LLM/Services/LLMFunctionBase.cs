@@ -1,5 +1,8 @@
+using AIAgentFramework.Core.Abstractions;
+using AIAgentFramework.Core.Models;
 using AIAgentFramework.LLM.Abstractions;
 using AIAgentFramework.LLM.Models;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace AIAgentFramework.LLM.Services;
@@ -13,15 +16,18 @@ public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction<TInput, TO
     protected readonly IPromptRegistry PromptRegistry;
     protected readonly ILLMProvider LLMProvider;
     protected readonly LLMFunctionOptions Options;
+    protected readonly ILogger? Logger;
 
     protected LLMFunctionBase(
         IPromptRegistry promptRegistry,
         ILLMProvider llmProvider,
-        LLMFunctionOptions? options = null)
+        LLMFunctionOptions? options = null,
+        ILogger? logger = null)
     {
         PromptRegistry = promptRegistry ?? throw new ArgumentNullException(nameof(promptRegistry));
         LLMProvider = llmProvider ?? throw new ArgumentNullException(nameof(llmProvider));
         Options = options ?? LLMFunctionOptions.Default;
+        Logger = logger;
     }
 
     public abstract LLMRole Role { get; }
@@ -58,23 +64,81 @@ public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction<TInput, TO
     /// </summary>
     public async Task<ILLMResult> ExecuteAsync(TInput input, CancellationToken cancellationToken = default)
     {
-        var variables = PrepareVariables(input);
-        var validation = ValidateVariables(variables);
+        var sw = Stopwatch.StartNew();
+        var executionId = Guid.NewGuid().ToString("N")[..8];
+        ILLMResult? result = null;
+        Exception? error = null;
 
-        if (!validation.IsValid)
+        try
         {
-            throw new InvalidOperationException(validation.ErrorMessage);
+            var variables = PrepareVariables(input);
+            var validation = ValidateVariables(variables);
+
+            if (!validation.IsValid)
+            {
+                throw new InvalidOperationException(validation.ErrorMessage);
+            }
+
+            var prompt = LoadPrompt();
+            var rendered = prompt.Render(variables);
+            var rawResponse = await CallLLMAsync(rendered, cancellationToken);
+            var output = ParseResponse(rawResponse);
+
+            result = CreateResult(rawResponse, output);
+            return result;
         }
-
-        var prompt = LoadPrompt();
-        var rendered = prompt.Render(variables);
-        var rawResponse = await CallLLMAsync(rendered, cancellationToken);
-        var output = ParseResponse(rawResponse);
-
-        return CreateResult(rawResponse, output);
+        catch (Exception ex)
+        {
+            error = ex;
+            throw;
+        }
+        finally
+        {
+            sw.Stop();
+            await LogExecutionAsync(executionId, input, result, sw.ElapsedMilliseconds, error, cancellationToken);
+        }
     }
 
-    public virtual async IAsyncEnumerable<ILLMStreamChunk> ExecuteStreamAsync(
+    private async Task LogExecutionAsync(
+        string executionId,
+        TInput input,
+        ILLMResult? result,
+        long durationMs,
+        Exception? error,
+        CancellationToken cancellationToken)
+    {
+        if (Logger == null) return;
+
+        try
+        {
+            var logEntry = LogEntry.Create(
+                logType: "LLM",
+                targetName: Role.ToString(),
+                executionId: executionId,
+                timestamp: DateTimeOffset.UtcNow,
+                request: input,
+                response: result,
+                durationMs: durationMs,
+                success: error == null,
+                errorMessage: error?.Message
+            );
+
+            await Logger.LogAsync(logEntry, cancellationToken);
+        }
+        catch
+        {
+            // 로깅 실패는 조용히 무시
+        }
+    }
+
+    public virtual IAsyncEnumerable<ILLMStreamChunk> ExecuteStreamAsync(
+        TInput input,
+        CancellationToken cancellationToken = default)
+    {
+        return ExecuteStreamWithLoggingAsync(input, cancellationToken);
+    }
+
+    private async IAsyncEnumerable<ILLMStreamChunk> ExecuteStreamWithLoggingAsync(
         TInput input,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
@@ -82,6 +146,9 @@ public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction<TInput, TO
         {
             throw new NotSupportedException($"{Role} does not support streaming");
         }
+
+        var sw = Stopwatch.StartNew();
+        var executionId = Guid.NewGuid().ToString("N")[..8];
 
         var variables = PrepareVariables(input);
         var validation = ValidateVariables(variables);
@@ -97,10 +164,11 @@ public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction<TInput, TO
         var index = 0;
         var accumulatedTokens = 0;
         var accumulatedResponse = new System.Text.StringBuilder();
+        ILLMResult? result = null;
 
         await foreach (var chunk in CallLLMStreamAsync(rendered, cancellationToken))
         {
-            accumulatedTokens += chunk.Length / 4; // 대략적인 토큰 추정
+            accumulatedTokens += chunk.Length / 4;
             accumulatedResponse.Append(chunk);
 
             yield return new LLMStreamChunk
@@ -116,6 +184,7 @@ public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction<TInput, TO
         // 마지막 청크: 파싱된 결과 포함
         var rawResponse = accumulatedResponse.ToString();
         var parsedOutput = ParseResponse(rawResponse);
+        result = CreateResult(rawResponse, parsedOutput);
 
         yield return new LLMStreamChunk
         {
@@ -125,6 +194,13 @@ public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction<TInput, TO
             AccumulatedTokens = accumulatedTokens,
             ParsedResult = parsedOutput
         };
+
+        // 스트리밍 완료 후 로깅 (예외는 상위에서 처리)
+        sw.Stop();
+        _ = Task.Run(async () =>
+        {
+            await LogExecutionAsync(executionId, input, result, sw.ElapsedMilliseconds, null, CancellationToken.None);
+        });
     }
 
     /// <summary>
