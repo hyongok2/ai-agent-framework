@@ -162,11 +162,11 @@ public class FileWriterTool : ITool
 
     private (string? FilePath, string? Content, bool Append) ExtractInput(object? input)
     {
-        if (input is JsonElement json)
+        if (input is Dictionary<string, object> dict)
         {
-            var filePath = json.TryGetProperty("path", out var pathProp) ? pathProp.GetString() : null;
-            var content = json.TryGetProperty("content", out var contentProp) ? contentProp.GetString() : null;
-            var append = json.TryGetProperty("append", out var appendProp) && appendProp.GetBoolean();
+            var filePath = dict.ContainsKey("path") ? dict["path"]?.ToString() : null;
+            var content = dict.ContainsKey("content") ? dict["content"]?.ToString() : null;
+            var append = dict.ContainsKey("append") && bool.TryParse(dict["append"]?.ToString(), out var appendValue) && appendValue;
 
             return (filePath, content, append);
         }

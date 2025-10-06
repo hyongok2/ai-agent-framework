@@ -25,8 +25,14 @@ public class FileReaderTool : ITool
             requiresParameters: true,
             inputSchema: """
                 {
-                    "type": "string",
-                    "description": "읽을 파일의 경로 (절대 경로 또는 상대 경로)"
+                    "type": "object",
+                    "properties": {
+                        "path": {
+                            "type": "string",
+                            "description": "읽을 파일의 경로 (절대 경로 또는 상대 경로)"
+                        }
+                    },
+                    "required": ["path"]
                 }
                 """,
             outputSchema: """
@@ -123,6 +129,7 @@ public class FileReaderTool : ITool
     {
         return input switch
         {
+            Dictionary<string, object> dict when dict.ContainsKey("path") => dict["path"]?.ToString(),
             string path => path,
             _ => input?.ToString()
         };

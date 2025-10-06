@@ -73,41 +73,50 @@ public class ParameterProcessor : IParameterProcessor
 
         var result = parameters;
 
-        // JSON 경로 표현식 처리 (예: ${variable.property})
-        var pathPattern = new System.Text.RegularExpressions.Regex(@"\$\{([^}]+)\}");
+        // JSON 문자열 값 내부의 변수만 매칭: "...{variable}..." 패턴
+        // 큰따옴표 안에 있는 {variable} 또는 {variable.property} 형식만 찾기
+        var pathPattern = new System.Text.RegularExpressions.Regex(@"""[^""]*?\{([^}]+)\}[^""]*?""");
         var matches = pathPattern.Matches(result);
 
         foreach (System.Text.RegularExpressions.Match match in matches)
         {
-            var fullPath = match.Groups[1].Value; // 예: "fileContent.Content"
-            var parts = fullPath.Split('.');
-            var key = parts[0]; // 예: "fileContent"
+            // match.Value는 전체 문자열 (예: "content": "{upperContent}")
+            // 내부의 {variable} 패턴만 추출
+            var innerPattern = new System.Text.RegularExpressions.Regex(@"\{([^}]+)\}");
+            var innerMatches = innerPattern.Matches(match.Value);
 
-            if (!agentContext.Contains(key))
+            foreach (System.Text.RegularExpressions.Match innerMatch in innerMatches)
             {
-                continue;
-            }
+                var fullPath = innerMatch.Groups[1].Value; // 예: "fileContent.Content"
+                var parts = fullPath.Split('.');
+                var key = parts[0]; // 예: "fileContent"
 
-            var value = agentContext.Get<object>(key)?.ToString() ?? string.Empty;
+                if (!agentContext.Contains(key))
+                {
+                    continue;
+                }
 
-            // JSON 경로가 있는 경우 (예: variable.property)
-            if (parts.Length > 1)
-            {
-                value = ExtractJsonProperty(value, parts[1]);
-            }
-            else
-            {
-                // 단순 변수인 경우, JSON이면 Content 속성 자동 추출
-                value = ExtractContentFromJson(value);
-            }
+                var value = agentContext.Get<object>(key)?.ToString() ?? string.Empty;
 
-            // JSON 문자열 안에 들어가는 경우 이스케이프
-            if (result.StartsWith("{") && result.Contains("\""))
-            {
-                value = EscapeForJson(value);
-            }
+                // JSON 경로가 있는 경우 (예: variable.property)
+                if (parts.Length > 1)
+                {
+                    value = ExtractJsonProperty(value, parts[1]);
+                }
+                else
+                {
+                    // 단순 변수인 경우, JSON이면 Content 속성 자동 추출
+                    value = ExtractContentFromJson(value);
+                }
 
-            result = result.Replace(match.Value, value);
+                // JSON 문자열 안에 들어가는 경우 이스케이프
+                if (result.StartsWith("{") && result.Contains("\""))
+                {
+                    value = EscapeForJson(value);
+                }
+
+                result = result.Replace(innerMatch.Value, value);
+            }
         }
 
         return result;

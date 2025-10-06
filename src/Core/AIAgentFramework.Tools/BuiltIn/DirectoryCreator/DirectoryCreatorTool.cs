@@ -25,8 +25,14 @@ public class DirectoryCreatorTool : ITool
             requiresParameters: true,
             inputSchema: """
                 {
-                    "type": "string",
-                    "description": "생성할 디렉토리 경로"
+                    "type": "object",
+                    "properties": {
+                        "path": {
+                            "type": "string",
+                            "description": "생성할 디렉토리 경로"
+                        }
+                    },
+                    "required": ["path"]
                 }
                 """,
             outputSchema: """
@@ -124,6 +130,7 @@ public class DirectoryCreatorTool : ITool
     {
         return input switch
         {
+            Dictionary<string, object> dict when dict.ContainsKey("path") => dict["path"]?.ToString(),
             string path => path,
             _ => input?.ToString()
         };

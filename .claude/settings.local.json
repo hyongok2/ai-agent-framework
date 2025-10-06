@@ -36,7 +36,14 @@
       "Bash(printf \"3\\n\")",
       "Bash(Remove-Item \"c:\\src\\work\\ai\\ai-agent-framework\\src\\Core\\AIAgentFramework.Core\\Models\\ExecutionContext.cs\" -Force)",
       "Bash(Select-Object -Last 50)",
-      "Bash(Set-Location src/Apps/AIAgentFramework.Console)"
+      "Bash(Set-Location src/Apps/AIAgentFramework.Console)",
+      "Bash(Get-ChildItem -Path src/Core -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(Copy-Item -Path \"src/Apps/AIAgentFramework.Console/prompts\" -Destination \"src/Apps/AIAgentFramework.OrchestratorTest/prompts\" -Recurse -Force)",
+      "Bash(Select-Object -First 100)",
+      "Read(//c/test-data/**)",
+      "Bash(cat:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

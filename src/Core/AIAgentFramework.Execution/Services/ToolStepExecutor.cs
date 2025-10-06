@@ -33,12 +33,13 @@ public class ToolStepExecutor : IStepExecutor
         var toolContext = AgentContext.Create(agentContext.UserId);
         object? toolInput = parameters;
 
-        // JSON 문자열이면 파싱
+        // JSON 문자열이면 Dictionary로 파싱
         if (!string.IsNullOrEmpty(parameters))
         {
             try
             {
-                toolInput = JsonSerializer.Deserialize<JsonElement>(parameters);
+                var jsonElement = JsonSerializer.Deserialize<JsonElement>(parameters);
+                toolInput = ConvertJsonElementToDictionary(jsonElement);
             }
             catch
             {
@@ -71,6 +72,36 @@ public class ToolStepExecutor : IStepExecutor
             IsSuccess = toolResult.IsSuccess,
             Output = output,
             ErrorMessage = toolResult.ErrorMessage
+        };
+    }
+
+    private static Dictionary<string, object> ConvertJsonElementToDictionary(JsonElement element)
+    {
+        var dict = new Dictionary<string, object>();
+
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var property in element.EnumerateObject())
+            {
+                dict[property.Name] = ConvertJsonValue(property.Value);
+            }
+        }
+
+        return dict;
+    }
+
+    private static object ConvertJsonValue(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString() ?? string.Empty,
+            JsonValueKind.Number => element.GetDouble(),
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Null => string.Empty,
+            JsonValueKind.Object => ConvertJsonElementToDictionary(element),
+            JsonValueKind.Array => element.EnumerateArray().Select(ConvertJsonValue).ToList(),
+            _ => element.ToString()
         };
     }
 }

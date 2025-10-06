@@ -26,13 +26,24 @@ public class EchoTool : ITool
             inputSchema: """
                 {
                     "type": "object",
-                    "description": "에코할 메시지 (모든 타입 허용)"
+                    "properties": {
+                        "message": {
+                            "type": "string",
+                            "description": "에코할 메시지"
+                        }
+                    },
+                    "required": ["message"]
                 }
                 """,
             outputSchema: """
                 {
                     "type": "object",
-                    "description": "입력과 동일한 데이터"
+                    "properties": {
+                        "message": {
+                            "type": "string",
+                            "description": "입력받은 메시지"
+                        }
+                    }
                 }
                 """
         );
@@ -57,10 +68,17 @@ public class EchoTool : ITool
             );
         }
 
-        // 입력을 그대로 반환
+        // Dictionary에서 message 추출
+        var message = input switch
+        {
+            Dictionary<string, object> dict when dict.ContainsKey("message") => dict["message"]?.ToString(),
+            string str => str,
+            _ => input?.ToString()
+        };
+
         var result = ToolResult.Success(
             Metadata.Name,
-            data: input,
+            data: new { message },
             startedAt
         );
 

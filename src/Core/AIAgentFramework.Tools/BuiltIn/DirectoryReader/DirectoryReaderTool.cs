@@ -141,18 +141,18 @@ public class DirectoryReaderTool : ITool
 
     private (string? DirectoryPath, string? Pattern, bool Recursive) ExtractInput(object? input)
     {
+        if (input is Dictionary<string, object> dict)
+        {
+            var directoryPath = dict.ContainsKey("path") ? dict["path"]?.ToString() : null;
+            var pattern = dict.ContainsKey("pattern") ? dict["pattern"]?.ToString() : null;
+            var recursive = dict.ContainsKey("recursive") && bool.TryParse(dict["recursive"]?.ToString(), out var recursiveValue) && recursiveValue;
+
+            return (directoryPath, pattern, recursive);
+        }
+
         if (input is string path)
         {
             return (path, null, false);
-        }
-
-        if (input is JsonElement json)
-        {
-            var directoryPath = json.TryGetProperty("path", out var pathProp) ? pathProp.GetString() : null;
-            var pattern = json.TryGetProperty("pattern", out var patternProp) ? patternProp.GetString() : null;
-            var recursive = json.TryGetProperty("recursive", out var recursiveProp) && recursiveProp.GetBoolean();
-
-            return (directoryPath, pattern, recursive);
         }
 
         return (input?.ToString(), null, false);
