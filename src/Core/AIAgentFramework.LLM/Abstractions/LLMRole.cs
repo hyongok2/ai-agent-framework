@@ -3,75 +3,90 @@ namespace AIAgentFramework.LLM.Abstractions;
 /// <summary>
 /// LLM 역할 (기능) 분류
 /// </summary>
+/// <remarks>
+/// AI Agent Framework의 LLM 기능을 역할 기반으로 분류합니다.
+/// 각 역할은 특정한 목적과 책임을 가지며, 독립적인 프롬프트 템플릿을 보유합니다.
+/// </remarks>
 public enum LLMRole
 {
+    // ========================================
+    // 핵심 오케스트레이션
+    // ========================================
+
     /// <summary>
-    /// 계획 수립 및 조율 (핵심)
+    /// 계획 수립 및 조율 - 사용자 요구 분석, 단계별 실행 계획 수립, 작업 순서/조건 분기/도구 매핑 결정
     /// </summary>
     Planner,
 
     /// <summary>
-    /// 입력 분석 및 해석
+    /// Tool 파라미터 생성 - 외부 Tool 호출에 필요한 파라미터 값 구성, 입력값 보정, 기본값 채우기, 누락 항목 유추
     /// </summary>
-    Analyzer,
+    ToolParameterSetter,
+
+    // ========================================
+    // 데이터 처리
+    // ========================================
 
     /// <summary>
-    /// 내용 요약
+    /// 내용 요약 - 장문의 텍스트나 다수의 결과를 압축 요약, 목적에 따라 다양한 스타일 제공
     /// </summary>
     Summarizer,
 
     /// <summary>
-    /// 콘텐츠 생성
-    /// </summary>
-    Generator,
-
-    /// <summary>
-    /// 품질 평가 및 비평
-    /// </summary>
-    Evaluator,
-
-    /// <summary>
-    /// 개선 및 재작성
-    /// </summary>
-    Refiner,
-
-    /// <summary>
-    /// 설명 및 교육
-    /// </summary>
-    Explainer,
-
-    /// <summary>
-    /// 추론 및 논리 검증
-    /// </summary>
-    Reasoner,
-
-    /// <summary>
-    /// 변환 및 번역
+    /// 변환 및 번역 - 언어 번역, 포맷 변환(JSON↔Markdown), 코드 변환 등
     /// </summary>
     Converter,
 
     /// <summary>
-    /// 텍스트 기반 시각화
+    /// 콘텐츠 생성 - 새로운 텍스트, 코드, 보고서, 시나리오 생성, 주어진 규칙/포맷에 맞춰 출력
     /// </summary>
-    Visualizer,
+    Generator,
 
     /// <summary>
-    /// Tool 파라미터 설정
+    /// 정보 추출 - 텍스트에서 특정 정보 추출 (엔티티, 날짜, 이메일, 전화번호, 키워드 등)
     /// </summary>
-    ToolParameterSetter,
+    Extractor,
+
+    // ========================================
+    // 분석 및 검증
+    // ========================================
 
     /// <summary>
-    /// 대화 관리
+    /// 입력 분석 및 해석 - 입력 텍스트 의미 분석, 핵심 정보 추출, 모호성 해석 및 의도 재정의
     /// </summary>
-    DialogueManager,
+    Analyzer,
 
     /// <summary>
-    /// 지식 검색
+    /// 분류 및 카테고리화 - 감정 분석, 스팸 분류, 주제 분류, 우선순위 분류 등
     /// </summary>
-    KnowledgeRetriever,
+    Classifier,
 
     /// <summary>
-    /// 메타 관리 및 자기 반성
+    /// 품질 평가 및 비평 - 결과물의 품질 평가, 대안 제시, 개선 포인트 피드백
     /// </summary>
-    MetaManager
+    Evaluator,
+
+    /// <summary>
+    /// 데이터 검증 - 스키마 검증, 형식 확인, 규칙 준수 여부 검사
+    /// </summary>
+    Validator,
+
+    // ========================================
+    // 추론 및 개선
+    // ========================================
+
+    /// <summary>
+    /// 추론 및 논리 검증 - 규칙/조건 기반 추론, 불완전한 정보로부터 합리적 추론, 논리적 일관성 점검
+    /// </summary>
+    Reasoner,
+
+    /// <summary>
+    /// 개선 및 재작성 - 기존 결과물을 개선, 특정 목적에 맞게 재작성
+    /// </summary>
+    Refiner,
+
+    /// <summary>
+    /// 설명 및 교육 - 특정 개념, 프로세스, 코드에 대해 단계별 설명, 수준 맞춤형 설명, Q&amp;A 형식 학습 지원
+    /// </summary>
+    Explainer
 }
