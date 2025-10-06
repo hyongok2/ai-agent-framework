@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.Json;
 using AIAgentFramework.Tools.BuiltIn.Echo;
 using AIAgentFramework.Tools.BuiltIn.FileReader;
 using AIAgentFramework.Tools.Models;
@@ -6,6 +7,7 @@ using AIAgentFramework.LLM.Providers;
 using AIAgentFramework.LLM.Models;
 using AIAgentFramework.LLM.Abstractions;
 using AIAgentFramework.LLM.Services.ToolSelection;
+using AIAgentFramework.LLM.Services.Planning;
 using CoreModels = AIAgentFramework.Core.Models;
 
 // 콘솔 UTF-8 인코딩 설정
@@ -173,6 +175,75 @@ await foreach (var chunk in streamingToolSelector.ExecuteStreamAsync(streamingCo
 
 Console.WriteLine("\n");
 Console.WriteLine("=== Streaming 테스트 완료 ===\n");
+Console.WriteLine("=".PadRight(50, '='));
+Console.WriteLine();
+
+// ========================================
+// TaskPlannerFunction 테스트
+// ========================================
+
+Console.WriteLine("=== AI Agent Framework - TaskPlanner 테스트 ===\n");
+
+// 1. LLMRegistry 생성 및 Function 등록
+var llmRegistry = new LLMRegistry();
+// 현재는 등록된 LLM Function이 없음 (나중에 Summarizer, Translator 등 추가 예정)
+
+// 2. TaskPlannerFunction 생성
+var taskPlanner = new TaskPlannerFunction(
+    promptRegistry,
+    ollama,
+    toolRegistry,
+    llmRegistry
+);
+
+// 3. 복잡한 요청으로 테스트
+var planningContext = new LLMContext
+{
+    UserInput = "c:\\test-data 폴더의 모든 txt 파일을 읽고, 각 파일의 내용을 요약한 다음, 결과를 summary.md 파일로 저장해줘"
+};
+
+Console.WriteLine($"사용자 요청: {planningContext.UserInput}\n");
+Console.WriteLine("--- TaskPlanner 실행 중... ---\n");
+
+var planResult = await taskPlanner.ExecuteAsync(planningContext);
+var plan = (PlanningResult)planResult.ParsedData!;
+
+Console.WriteLine($"📋 계획 요약: {plan.Summary}\n");
+Console.WriteLine($"✅ 실행 가능: {plan.IsExecutable}");
+Console.WriteLine($"⏱️  예상 시간: {plan.TotalEstimatedSeconds}초\n");
+
+Console.WriteLine("📝 실행 단계:");
+foreach (var step in plan.Steps)
+{
+    Console.WriteLine($"\n  [{step.StepNumber}] {step.Description}");
+    Console.WriteLine($"      Tool: {step.ToolName}");
+    Console.WriteLine($"      Parameters: {step.Parameters}");
+    if (!string.IsNullOrEmpty(step.OutputVariable))
+    {
+        Console.WriteLine($"      Output → {step.OutputVariable}");
+    }
+    if (step.DependsOn.Count > 0)
+    {
+        Console.WriteLine($"      Depends on: {string.Join(", ", step.DependsOn)}");
+    }
+    if (step.EstimatedSeconds.HasValue)
+    {
+        Console.WriteLine($"      Est. time: {step.EstimatedSeconds}초");
+    }
+}
+
+if (plan.Constraints.Count > 0)
+{
+    Console.WriteLine($"\n⚠️  제약사항:");
+    foreach (var constraint in plan.Constraints)
+    {
+        Console.WriteLine($"  - {constraint}");
+    }
+}
+
+Console.WriteLine($"\n\n원본 LLM 응답:\n{planResult.RawResponse}\n");
+
+Console.WriteLine("=== TaskPlanner 테스트 완료 ===\n");
 Console.WriteLine("=".PadRight(50, '='));
 Console.WriteLine();
 

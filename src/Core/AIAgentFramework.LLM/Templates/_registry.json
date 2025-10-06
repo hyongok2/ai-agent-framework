@@ -16,6 +16,24 @@
           "outputFormat": "json"
         }
       }
+    },
+    {
+      "name": "task-planning",
+      "role": "Planner",
+      "templatePath": "task-planning.md",
+      "requiredVariables": ["TOOLS", "LLM_FUNCTIONS", "USER_REQUEST"],
+      "optionalVariables": ["CONTEXT", "HISTORY", "PREVIOUS_RESULTS"],
+      "metadata": {
+        "version": "1.0",
+        "description": "사용자 요청을 분석하여 실행 가능한 Task 계획 생성",
+        "author": "System",
+        "createdAt": "2025-10-06T00:00:00Z",
+        "tags": {
+          "category": "task-planning",
+          "outputFormat": "json",
+          "complexity": "high"
+        }
+      }
     }
   ]
 }

@@ -37,4 +37,10 @@ public interface ILLMRegistry
     /// <param name="providerName">제공자 이름</param>
     /// <returns>LLM 제공자 인스턴스</returns>
     ILLMProvider? GetProvider(string providerName);
+
+    /// <summary>
+    /// LLM에게 제공할 Function 설명 목록 생성
+    /// </summary>
+    /// <returns>LLM이 이해할 수 있는 형식의 Function 설명 (JSON 등)</returns>
+    string GetFunctionDescriptionsForLLM();
 }
