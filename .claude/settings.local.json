@@ -16,7 +16,8 @@
       "Bash(del \"c:\\src\\work\\ai\\ai-agent-framework\\src\\Core\\AIAgentFramework.LLM\\Models\\ToolSelectionInput.cs\")",
       "Bash(mkdir:*)",
       "Bash(Select-Object -Last 100)",
-      "Bash(Stop-Process -Name \"AIAgentFramework.Console\" -Force)"
+      "Bash(Stop-Process -Name \"AIAgentFramework.Console\" -Force)",
+      "Bash(del \"c:\\src\\work\\ai\\ai-agent-framework\\src\\Apps\\AIAgentFramework.Console\\Program.cs\")"
     ],
     "deny": [],
     "ask": []

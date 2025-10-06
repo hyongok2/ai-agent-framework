@@ -52,6 +52,42 @@
           "complexity": "medium"
         }
       }
+    },
+    {
+      "name": "evaluation",
+      "role": "Evaluator",
+      "templatePath": "evaluation.md",
+      "requiredVariables": ["TASK_DESCRIPTION", "EXECUTION_RESULT"],
+      "optionalVariables": ["EXPECTED_OUTCOME", "EVALUATION_CRITERIA"],
+      "metadata": {
+        "version": "1.0",
+        "description": "실행 결과의 품질 평가 및 검증",
+        "author": "System",
+        "createdAt": "2025-10-06T00:00:00Z",
+        "tags": {
+          "category": "quality-assurance",
+          "outputFormat": "json",
+          "complexity": "medium"
+        }
+      }
+    },
+    {
+      "name": "summarization",
+      "role": "Summarizer",
+      "templatePath": "summarization.md",
+      "requiredVariables": ["CONTENT"],
+      "optionalVariables": ["SUMMARY_STYLE", "REQUIREMENTS"],
+      "metadata": {
+        "version": "1.0",
+        "description": "텍스트 내용 요약",
+        "author": "System",
+        "createdAt": "2025-10-06T00:00:00Z",
+        "tags": {
+          "category": "content-processing",
+          "outputFormat": "json",
+          "complexity": "low"
+        }
+      }
     }
   ]
 }

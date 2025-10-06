@@ -1,5 +1,4 @@
-using System.Text;
-using System.Text.Json;
+﻿using System.Text;
 using AIAgentFramework.Tools.BuiltIn.Echo;
 using AIAgentFramework.Tools.BuiltIn.FileReader;
 using AIAgentFramework.Tools.BuiltIn.FileWriter;
@@ -8,12 +7,7 @@ using AIAgentFramework.Tools.BuiltIn.DirectoryCreator;
 using AIAgentFramework.Tools.Models;
 using AIAgentFramework.LLM.Providers;
 using AIAgentFramework.LLM.Models;
-using AIAgentFramework.LLM.Abstractions;
-using AIAgentFramework.LLM.Services.ToolSelection;
-using AIAgentFramework.LLM.Services.Planning;
-using AIAgentFramework.LLM.Services.ParameterGeneration;
-using AIAgentFramework.LLM.Extensions;
-using CoreModels = AIAgentFramework.Core.Models;
+using AIAgentFramework.Console.Tests;
 
 // 콘솔 UTF-8 인코딩 설정
 Console.OutputEncoding = Encoding.UTF8;
@@ -53,7 +47,9 @@ while (true)
     Console.WriteLine("║  4. Streaming 테스트                           ║");
     Console.WriteLine("║  5. TaskPlanner 테스트                         ║");
     Console.WriteLine("║  6. ParameterGenerator 테스트                  ║");
-    Console.WriteLine("║  0. 종료                                        ║");
+    Console.WriteLine("║  7. Evaluator 테스트                           ║");
+    Console.WriteLine("║  8. Summarizer 테스트                          ║");
+    Console.WriteLine("║  0. 종료                                       ║");
     Console.WriteLine("╚════════════════════════════════════════════════╝");
     Console.Write("\n선택: ");
 
@@ -64,22 +60,28 @@ while (true)
         switch (choice)
         {
             case "1":
-                await TestOllamaProvider(ollama);
+                await OllamaTests.TestOllamaProvider(ollama);
                 break;
             case "2":
-                await TestPromptRegistry(promptRegistry, toolRegistry, ollama);
+                await PromptTests.TestPromptRegistry(promptRegistry, toolRegistry, ollama);
                 break;
             case "3":
-                await TestToolSelector(promptRegistry, toolRegistry, ollama);
+                await LLMFunctionTests.TestToolSelector(promptRegistry, toolRegistry, ollama);
                 break;
             case "4":
-                await TestStreaming(promptRegistry, toolRegistry, ollama);
+                await LLMFunctionTests.TestStreaming(promptRegistry, toolRegistry, ollama);
                 break;
             case "5":
-                await TestTaskPlanner(promptRegistry, toolRegistry, llmRegistry, ollama);
+                await LLMFunctionTests.TestTaskPlanner(promptRegistry, toolRegistry, llmRegistry, ollama);
                 break;
             case "6":
-                await TestParameterGenerator(promptRegistry, toolRegistry, ollama);
+                await LLMFunctionTests.TestParameterGenerator(promptRegistry, toolRegistry, ollama);
+                break;
+            case "7":
+                await LLMFunctionTests.TestEvaluator(promptRegistry, ollama);
+                break;
+            case "8":
+                await LLMFunctionTests.TestSummarizer(promptRegistry, ollama);
                 break;
             case "0":
                 Console.WriteLine("\n프로그램을 종료합니다.");
@@ -96,310 +98,4 @@ while (true)
 
     Console.WriteLine("\n\n계속하려면 아무 키나 누르세요...");
     Console.ReadKey();
-}
-
-// ========================================
-// 테스트 메서드들
-// ========================================
-
-static async Task TestOllamaProvider(OllamaProvider ollama)
-{
-    Console.Clear();
-    Console.WriteLine("=== AI Agent Framework - Ollama Provider 테스트 ===\n");
-
-    Console.WriteLine($"Provider: {ollama.ProviderName}");
-    Console.WriteLine($"Supported Models: {string.Join(", ", ollama.SupportedModels)}\n");
-
-    Console.WriteLine("--- 테스트 1: 일반 호출 ---");
-    var ollamaResponse = await ollama.CallAsync("Say hello in Korean!", "gpt-oss:20b");
-    Console.WriteLine($"응답: {ollamaResponse}\n");
-
-    Console.WriteLine("--- 테스트 2: 스트리밍 호출 ---");
-    Console.Write("응답: ");
-    await foreach (var chunk in ollama.CallStreamAsync("한국어로 간단히 AI를 설명해줘 (3문장)", "gpt-oss:20b"))
-    {
-        Console.Write(chunk);
-    }
-    Console.WriteLine("\n");
-
-    Console.WriteLine("=== Ollama Provider 테스트 완료 ===");
-}
-
-static async Task TestPromptRegistry(PromptRegistry promptRegistry, ToolRegistry toolRegistry, OllamaProvider ollama)
-{
-    Console.Clear();
-    Console.WriteLine("=== AI Agent Framework - PromptRegistry 테스트 ===\n");
-
-    Console.WriteLine($"등록된 프롬프트 수: {promptRegistry.GetAllPrompts().Count}");
-    foreach (var promptDef in promptRegistry.GetAllPrompts())
-    {
-        Console.WriteLine($"  - {promptDef.Name} ({promptDef.Role}): {promptDef.Metadata.Description}");
-    }
-    Console.WriteLine();
-
-    var toolSelectionPrompt = promptRegistry.GetPrompt("tool-selection");
-    Console.WriteLine($"프롬프트: {toolSelectionPrompt?.Template.Substring(0, 100)}...");
-    Console.WriteLine($"변수: {string.Join(", ", toolSelectionPrompt?.Variables ?? new List<string>())}\n");
-
-    var variables = new Dictionary<string, object>
-    {
-        ["TOOLS"] = toolRegistry.GetToolDescriptionsForLLM(),
-        ["USER_INPUT"] = "c:\\test-data\\sample.txt 파일을 읽어줘"
-    };
-
-    var validation = promptRegistry.ValidateVariables("tool-selection", variables);
-    Console.WriteLine($"변수 검증: {(validation.IsValid ? "성공" : validation.ErrorMessage)}\n");
-
-    var renderedPrompt = toolSelectionPrompt!.Render(variables);
-
-    Console.WriteLine("--- LLM Tool 선택 테스트 ---");
-    var toolSelectionResponse = await ollama.CallAsync(renderedPrompt, "llama3.1:8b");
-    Console.WriteLine($"LLM 응답:\n{toolSelectionResponse}\n");
-
-    Console.WriteLine("=== PromptRegistry 테스트 완료 ===");
-}
-
-static async Task TestToolSelector(PromptRegistry promptRegistry, ToolRegistry toolRegistry, OllamaProvider ollama)
-{
-    Console.Clear();
-    Console.WriteLine("=== AI Agent Framework - ToolSelectorFunction 테스트 ===\n");
-
-    var toolSelectorFunction = new ToolSelectorFunction(
-        promptRegistry,
-        ollama,
-        toolRegistry
-    );
-
-    var context = new LLMContext
-    {
-        UserInput = "c:\\test-data\\sample.txt 파일을 읽어줘"
-    };
-
-    Console.WriteLine($"사용자 요청: {context.UserInput}\n");
-    Console.WriteLine("--- ToolSelectorFunction 실행 중... ---\n");
-
-    var llmResult = await toolSelectorFunction.ExecuteAsync(context);
-    var toolSelection = (ToolSelectionResult)llmResult.ParsedData!;
-
-    Console.WriteLine($"선택된 Tool: {toolSelection.ToolName}");
-    Console.WriteLine($"파라미터: {toolSelection.Parameters}");
-    Console.WriteLine($"LLM Role: {llmResult.Role}");
-    Console.WriteLine($"원본 응답:\n{llmResult.RawResponse}\n");
-
-    Console.WriteLine("=== ToolSelectorFunction 테스트 완료 ===");
-}
-
-static async Task TestStreaming(PromptRegistry promptRegistry, ToolRegistry toolRegistry, OllamaProvider ollama)
-{
-    Console.Clear();
-    Console.WriteLine("=== AI Agent Framework - Streaming 테스트 ===\n");
-
-    var streamingOptions = new LLMFunctionOptions
-    {
-        ModelName = "gpt-oss:20b",
-        EnableStreaming = true,
-        TimeoutMs = 60000
-    };
-
-    var streamingToolSelector = new ToolSelectorFunction(
-        promptRegistry,
-        ollama,
-        toolRegistry,
-        streamingOptions
-    );
-
-    Console.WriteLine($"스트리밍 지원: {streamingToolSelector.SupportsStreaming}");
-    Console.WriteLine($"모델: {streamingOptions.ModelName}\n");
-
-    var streamingContext = new LLMContext
-    {
-        UserInput = "안녕이라고 메시지 출력해줘"
-    };
-
-    Console.WriteLine($"사용자 요청: {streamingContext.UserInput}\n");
-    Console.WriteLine("--- 스트리밍 응답 수신 중... ---");
-    Console.Write("응답: ");
-
-    var fullResponse = new StringBuilder();
-    await foreach (var chunk in streamingToolSelector.ExecuteStreamAsync(streamingContext))
-    {
-        if (!chunk.IsFinal && !string.IsNullOrEmpty(chunk.Content))
-        {
-            Console.Write(chunk.Content);
-            fullResponse.Append(chunk.Content);
-        }
-        else if (chunk.IsFinal)
-        {
-            Console.WriteLine($"\n\n누적 토큰: {chunk.AccumulatedTokens}");
-            Console.WriteLine($"총 청크 수: {chunk.Index}");
-        }
-    }
-
-    Console.WriteLine("\n\n=== Streaming 테스트 완료 ===");
-}
-
-static async Task TestTaskPlanner(PromptRegistry promptRegistry, ToolRegistry toolRegistry, LLMRegistry llmRegistry, OllamaProvider ollama)
-{
-    Console.Clear();
-    Console.WriteLine("=== AI Agent Framework - TaskPlanner 테스트 ===\n");
-
-    var taskPlanner = new TaskPlannerFunction(
-        promptRegistry,
-        ollama,
-        toolRegistry,
-        llmRegistry
-    );
-
-    var planningContext = new LLMContext
-    {
-        UserInput = "c:\\test-data 폴더의 모든 txt 파일을 읽고, 각 파일의 내용을 요약한 다음, 결과를 summary.md 파일로 저장해줘"
-    };
-
-    Console.WriteLine($"사용자 요청: {planningContext.UserInput}\n");
-    Console.WriteLine("--- TaskPlanner 실행 중... ---\n");
-
-    var planResult = await taskPlanner.ExecuteAsync(planningContext);
-    var plan = (PlanningResult)planResult.ParsedData!;
-
-    Console.WriteLine($"📋 계획 요약: {plan.Summary}\n");
-    Console.WriteLine($"✅ 실행 가능: {plan.IsExecutable}");
-    Console.WriteLine($"⏱️  예상 시간: {plan.TotalEstimatedSeconds}초\n");
-
-    if (plan.Steps.Count > 0)
-    {
-        Console.WriteLine("📝 실행 단계:");
-        foreach (var step in plan.Steps)
-        {
-            Console.WriteLine($"\n  [{step.StepNumber}] {step.Description}");
-            Console.WriteLine($"      Tool: {step.ToolName}");
-            Console.WriteLine($"      Parameters: {step.Parameters}");
-            if (!string.IsNullOrEmpty(step.OutputVariable))
-            {
-                Console.WriteLine($"      Output → {step.OutputVariable}");
-            }
-            if (step.DependsOn.Count > 0)
-            {
-                Console.WriteLine($"      Depends on: {string.Join(", ", step.DependsOn)}");
-            }
-            if (step.EstimatedSeconds.HasValue)
-            {
-                Console.WriteLine($"      Est. time: {step.EstimatedSeconds}초");
-            }
-        }
-    }
-
-    if (plan.Constraints.Count > 0)
-    {
-        Console.WriteLine($"\n⚠️  제약사항:");
-        foreach (var constraint in plan.Constraints)
-        {
-            Console.WriteLine($"  - {constraint}");
-        }
-    }
-
-    if (!plan.IsExecutable && !string.IsNullOrEmpty(plan.ExecutionBlocker))
-    {
-        Console.WriteLine($"\n❌ 실행 불가 이유:\n{plan.ExecutionBlocker}");
-    }
-
-    Console.WriteLine($"\n\n원본 LLM 응답:\n{planResult.RawResponse}\n");
-
-    Console.WriteLine("=== TaskPlanner 테스트 완료 ===");
-}
-
-static async Task TestParameterGenerator(PromptRegistry promptRegistry, ToolRegistry toolRegistry, OllamaProvider ollama)
-{
-    Console.Clear();
-    Console.WriteLine("=== AI Agent Framework - ParameterGenerator 테스트 ===\n");
-
-    var paramGenerator = new ParameterGeneratorFunction(
-        promptRegistry,
-        ollama
-    );
-
-    // 시나리오 1: DirectoryReader 파라미터 생성
-    Console.WriteLine("--- 시나리오 1: DirectoryReader 파라미터 생성 ---\n");
-
-    var tool = toolRegistry.GetTool("DirectoryReader")!;
-    var parameters1 = new Dictionary<string, object>
-    {
-        ["TOOL_NAME"] = tool.Metadata.Name,
-        ["TOOL_INPUT_SCHEMA"] = tool.Contract.InputSchema,
-        ["STEP_DESCRIPTION"] = "c:\\test-data 디렉토리에서 txt 파일 목록 조회"
-    };
-
-    var context1 = new LLMContext
-    {
-        UserInput = "c:\\test-data 폴더의 모든 txt 파일 목록을 보여줘",
-        Parameters = parameters1
-    };
-
-    Console.WriteLine($"사용자 요청: {context1.UserInput}");
-    Console.WriteLine($"Tool: {tool.Metadata.Name}");
-    Console.WriteLine($"Step: {context1.Get<string>("STEP_DESCRIPTION")}\n");
-    Console.WriteLine("--- ParameterGenerator 실행 중... ---\n");
-
-    var result1 = await paramGenerator.ExecuteAsync(context1);
-    var paramResult1 = (ParameterGenerationResult)result1.ParsedData!;
-
-    Console.WriteLine($"✅ Valid: {paramResult1.IsValid}");
-    Console.WriteLine($"🔧 Tool: {paramResult1.ToolName}");
-    Console.WriteLine($"📝 Parameters: {paramResult1.Parameters}");
-    if (!string.IsNullOrEmpty(paramResult1.Reasoning))
-    {
-        Console.WriteLine($"💡 Reasoning: {paramResult1.Reasoning}");
-    }
-    if (!string.IsNullOrEmpty(paramResult1.ErrorMessage))
-    {
-        Console.WriteLine($"❌ Error: {paramResult1.ErrorMessage}");
-    }
-
-    // 시나리오 2: FileWriter 파라미터 생성 (이전 결과 활용)
-    Console.WriteLine("\n\n--- 시나리오 2: FileWriter 파라미터 생성 (이전 결과 활용) ---\n");
-
-    var fileWriterTool = toolRegistry.GetTool("FileWriter")!;
-
-    // 이전 단계 결과 시뮬레이션
-    var previousResults = JsonSerializer.Serialize(new
-    {
-        SummaryText = "총 5개의 파일을 분석했습니다. 주요 내용은 AI 에이전트 프레임워크에 관한 것입니다.",
-        FileCount = 5
-    });
-
-    var parameters2 = new Dictionary<string, object>
-    {
-        ["TOOL_NAME"] = fileWriterTool.Metadata.Name,
-        ["TOOL_INPUT_SCHEMA"] = fileWriterTool.Contract.InputSchema,
-        ["STEP_DESCRIPTION"] = "요약 결과를 summary.txt 파일로 저장",
-        ["PREVIOUS_RESULTS"] = previousResults
-    };
-
-    var context2 = new LLMContext
-    {
-        UserInput = "결과를 summary.txt 파일로 저장해줘",
-        Parameters = parameters2
-    };
-
-    Console.WriteLine($"사용자 요청: {context2.UserInput}");
-    Console.WriteLine($"Tool: {fileWriterTool.Metadata.Name}");
-    Console.WriteLine($"Step: {context2.Get<string>("STEP_DESCRIPTION")}");
-    Console.WriteLine($"Previous Results: {previousResults}\n");
-    Console.WriteLine("--- ParameterGenerator 실행 중... ---\n");
-
-    var result2 = await paramGenerator.ExecuteAsync(context2);
-    var paramResult2 = (ParameterGenerationResult)result2.ParsedData!;
-
-    Console.WriteLine($"✅ Valid: {paramResult2.IsValid}");
-    Console.WriteLine($"🔧 Tool: {paramResult2.ToolName}");
-    Console.WriteLine($"📝 Parameters: {paramResult2.Parameters}");
-    if (!string.IsNullOrEmpty(paramResult2.Reasoning))
-    {
-        Console.WriteLine($"💡 Reasoning: {paramResult2.Reasoning}");
-    }
-    if (!string.IsNullOrEmpty(paramResult2.ErrorMessage))
-    {
-        Console.WriteLine($"❌ Error: {paramResult2.ErrorMessage}");
-    }
-
-    Console.WriteLine("\n\n=== ParameterGenerator 테스트 완료 ===");
 }
