@@ -12,11 +12,14 @@ public interface IParameterProcessor
     /// 파라미터 처리 (변수 치환 + 검증 + 필요시 자동 생성)
     /// </summary>
     Task<ParameterProcessingResult> ProcessAsync(
-        ITool? tool,
+        string targetName,
+        string? inputSchema,
+        bool requiresParameters,
         string? rawParameters,
         string userRequest,
         string stepDescription,
         IAgentContext agentContext,
+        Action<string>? onStreamChunk = null,
         CancellationToken cancellationToken = default);
 }
 

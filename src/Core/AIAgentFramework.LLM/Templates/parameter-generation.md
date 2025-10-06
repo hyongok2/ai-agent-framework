@@ -27,10 +27,18 @@ You are an expert at generating precise tool parameters based on user requests a
 **IMPORTANT**: Use these actual results when referencing previous outputs. Extract the exact values needed.
 {{/if}}
 
+{{#if CONVERSATION_HISTORY}}
+## Conversation History
+
+{{{CONVERSATION_HISTORY}}}
+
+**CONTEXT**: This is the conversation context that may help understand user's intent and previous interactions.
+{{/if}}
+
 {{#if ADDITIONAL_CONTEXT}}
 ## Additional Context
 
-{{ADDITIONAL_CONTEXT}}
+{{{ADDITIONAL_CONTEXT}}}
 {{/if}}
 
 ## Your Task
@@ -40,6 +48,8 @@ Generate the **exact parameters** needed to execute this tool based on:
 2. The current step description
 3. The tool's input schema
 4. Previous step results (if any)
+5. Conversation history (if any)
+6. Additional context (if any)
 
 ## Parameter Generation Rules
 

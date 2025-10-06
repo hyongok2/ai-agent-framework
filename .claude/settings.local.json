@@ -48,7 +48,10 @@
       "Bash(Select-Object -First 150)",
       "Bash(Set-Location \"C:\\src\\work\\ai\\ai-agent-framework\\src\\Apps\\AIAgentFramework.ChatBot\")",
       "Bash(Select-Object -Last 20)",
-      "Bash(printf \"c:\\test-data 폴더에 txt 파일 읽어서 요약해줘\\n/exit\\n\")"
+      "Bash(printf \"c:\\test-data 폴더에 txt 파일 읽어서 요약해줘\\n/exit\\n\")",
+      "Bash(printf \"c:\\test-data 폴더의 파일들을 대문자로 변환해줘\\n\")",
+      "Bash(printf \"c:\\test-data 폴더의 txt 파일 내용을 읽어서 요약해줘\\n/exit\\n\")",
+      "Bash(printf:*)"
     ],
     "deny": [],
     "ask": []

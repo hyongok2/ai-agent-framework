@@ -2,6 +2,7 @@ using System.Diagnostics;
 using AIAgentFramework.Core.Abstractions;
 using AIAgentFramework.Execution.Abstractions;
 using AIAgentFramework.Execution.Models;
+using AIAgentFramework.LLM.Abstractions;
 using AIAgentFramework.LLM.Services.Planning;
 
 namespace AIAgentFramework.Execution.Services;
@@ -119,12 +120,37 @@ public class PlanExecutor : IExecutor
             }
 
             // 2. Process: 파라미터 처리 (변수 치환 + 검증 + 자동 생성)
+            string targetName;
+            string? inputSchema;
+            bool requiresParameters;
+
+            if (executable.Type == ExecutableType.Tool && executable.Tool != null)
+            {
+                targetName = executable.Tool.Metadata.Name;
+                inputSchema = executable.Tool.Contract.InputSchema;
+                requiresParameters = executable.Tool.Contract.RequiresParameters;
+            }
+            else if (executable.Type == ExecutableType.LLMFunction && executable.LLMFunction != null)
+            {
+                targetName = executable.LLMFunction.Role.ToString();
+                inputSchema = GetLLMFunctionInputSchema(executable.LLMFunction.Role);
+                requiresParameters = true; // LLM Function은 대부분 파라미터 필요
+            }
+            else
+            {
+                stepStopwatch.Stop();
+                return CreateFailureResult(step, $"Invalid executable type", stepStopwatch);
+            }
+
             var paramResult = await _parameterProcessor.ProcessAsync(
-                executable.Tool,
+                targetName,
+                inputSchema,
+                requiresParameters,
                 step.Parameters,
                 userRequest,
                 step.Description,
                 agentContext,
+                onStreamChunk,
                 cancellationToken);
 
             if (!paramResult.IsSuccess)
@@ -177,6 +203,21 @@ public class PlanExecutor : IExecutor
             IsSuccess = false,
             ErrorMessage = errorMessage,
             ExecutionTimeMs = stopwatch.ElapsedMilliseconds
+        };
+    }
+
+    /// <summary>
+    /// LLM Function의 Input Schema를 반환 (간단한 문자열 스키마)
+    /// </summary>
+    private string GetLLMFunctionInputSchema(LLMRole role)
+    {
+        return role switch
+        {
+            LLMRole.Summarizer => @"{""type"":""object"",""properties"":{""text"":{""type"":""string""}},""required"":[""text""]}",
+            LLMRole.Analyzer => @"{""type"":""object"",""properties"":{""content"":{""type"":""string""}},""required"":[""content""]}",
+            LLMRole.Converter => @"{""type"":""object"",""properties"":{""text"":{""type"":""string""},""mode"":{""type"":""string""}},""required"":[""text"",""mode""]}",
+            LLMRole.Generator => @"{""type"":""object"",""properties"":{""prompt"":{""type"":""string""}},""required"":[""prompt""]}",
+            _ => @"{""type"":""object"",""properties"":{""input"":{""type"":""string""}},""required"":[""input""]}"
         };
     }
 }
