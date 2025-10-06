@@ -39,6 +39,7 @@ public class LLMFunctionStepExecutor : IStepExecutor
         {
             try
             {
+                // JSON 파싱 시도
                 var jsonDoc = JsonDocument.Parse(parameters);
                 var mergedParams = new Dictionary<string, object>(llmContext.Parameters);
 
@@ -58,10 +59,25 @@ public class LLMFunctionStepExecutor : IStepExecutor
                     SessionId = llmContext.SessionId
                 };
             }
-            catch (Exception ex)
+            catch (JsonException)
             {
-                // JSON 파싱 실패하면 parameters 무시
-                System.Console.WriteLine($"[WARNING] Parameters 파싱 실패: {ex.Message}");
+                // JSON 파싱 실패 → 변수 치환된 값을 CONTENT로 사용
+                // 예: "{allContent}" → 치환 후 "실제 내용" → {"CONTENT": "실제 내용"}
+                var mergedParams = new Dictionary<string, object>(llmContext.Parameters)
+                {
+                    ["CONTENT"] = parameters
+                };
+
+                llmContext = new LLMContext
+                {
+                    UserInput = userRequest,
+                    Parameters = mergedParams,
+                    ExecutionId = llmContext.ExecutionId,
+                    UserId = llmContext.UserId,
+                    SessionId = llmContext.SessionId
+                };
+
+                System.Console.WriteLine($"[INFO] Non-JSON parameter converted to CONTENT: {parameters.Substring(0, Math.Min(50, parameters.Length))}...");
             }
         }
 

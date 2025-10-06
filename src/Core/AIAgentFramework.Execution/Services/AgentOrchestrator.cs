@@ -4,6 +4,7 @@ using AIAgentFramework.Core.Abstractions;
 using AIAgentFramework.Core.Models;
 using AIAgentFramework.Execution.Models;
 using AIAgentFramework.LLM.Abstractions;
+using AIAgentFramework.LLM.Services.Conversation;
 using AIAgentFramework.LLM.Services.Evaluation;
 using AIAgentFramework.LLM.Services.Planning;
 
@@ -25,6 +26,7 @@ public class AgentOrchestrator : IOrchestrator
         _llmRegistry = llmRegistry ?? throw new ArgumentNullException(nameof(llmRegistry));
         _planExecutor = planExecutor ?? throw new ArgumentNullException(nameof(planExecutor));
     }
+
 
     private static string FormatStepResults(List<StepExecutionResult> steps)
     {
@@ -185,9 +187,9 @@ public class AgentOrchestrator : IOrchestrator
         IAgentContext context,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        // 1. TaskPlanner 실행 - 의도 파악 및 계획 수립
         yield return StreamChunk.Status("📋 계획 수립 중...");
 
-        // 1. TaskPlanner 실행 (스트리밍)
         var planner = _llmRegistry.GetFunction(LLMRole.Planner)
             ?? throw new InvalidOperationException("TaskPlanner not registered");
 
@@ -213,17 +215,46 @@ public class AgentOrchestrator : IOrchestrator
             }
         }
 
-        if (plan == null || !plan.IsExecutable)
+        if (plan == null)
         {
-            yield return StreamChunk.Error(plan?.ExecutionBlocker ?? "계획 수립 실패");
+            yield return StreamChunk.Error("계획 수립 실패");
+            yield return StreamChunk.Complete();
+            yield break;
+        }
+
+        // 2. PlanType에 따른 라우팅
+        if (plan.Type == PlanType.SimpleResponse ||
+            plan.Type == PlanType.Information ||
+            plan.Type == PlanType.Clarification)
+        {
+            // 단순 응답/정보 제공/명확화 질문 → DirectResponse 스트리밍
+            if (!string.IsNullOrEmpty(plan.DirectResponse))
+            {
+                yield return StreamChunk.Text(plan.DirectResponse);
+            }
+            else
+            {
+                yield return StreamChunk.Text(plan.Summary);
+            }
+
+            yield return StreamChunk.Complete("응답 완료");
+            yield break;
+        }
+
+        // 3. ToolExecution 타입이지만 실행 불가능한 경우 에러 처리
+        if (!plan.IsExecutable)
+        {
+            yield return StreamChunk.Error(plan.ExecutionBlocker ?? "계획 실행 불가");
             yield return StreamChunk.Complete();
             yield break;
         }
 
         yield return StreamChunk.Status($"\n\n✅ 계획 수립 완료: {plan.Summary}\n");
+
+        // 4. 도구 실행 모드 (ToolExecution) → 기존 플로우
         yield return StreamChunk.Status("⚙️ 계획 실행 중...\n");
 
-        // 2. PlanExecutor 실행 (스트리밍)
+        // PlanExecutor 실행 (스트리밍)
         var executionInput = new ExecutionInput
         {
             Plan = plan,
@@ -246,7 +277,7 @@ public class AgentOrchestrator : IOrchestrator
         yield return StreamChunk.Status($"\n\n✅ 계획 실행 완료\n");
         yield return StreamChunk.Status("🔍 결과 평가 중...\n");
 
-        // 3. Evaluator 실행 (스트리밍)
+        // 5. Evaluator 실행 (스트리밍)
         var evaluator = _llmRegistry.GetFunction(LLMRole.Evaluator)
             ?? throw new InvalidOperationException("Evaluator not registered");
 
@@ -274,6 +305,47 @@ public class AgentOrchestrator : IOrchestrator
         }
 
         yield return StreamChunk.Status($"\n\n✅ 평가 완료 (점수: {(int)(evaluation?.QualityScore * 100 ?? 0)}점)\n");
+
+        // 6. ConversationFunction으로 사용자에게 친절하게 설명
+        yield return StreamChunk.Status("\n💬 결과 설명 중...\n\n");
+
+        var conversationalist = _llmRegistry.GetFunction(LLMRole.Conversationalist);
+        if (conversationalist != null && evaluation != null)
+        {
+            // 평가 결과를 대화 형식으로 설명하기 위한 프롬프트 생성
+            var explanationPrompt = $@"사용자가 요청한 작업: ""{userInput}""
+
+평가 결과:
+- 성공 여부: {(evaluation.IsSuccess ? "성공" : "실패")}
+- 품질 점수: {(int)(evaluation.QualityScore * 100)}점
+- 평가 내용: {evaluation.Assessment}
+- 강점: {string.Join(", ", evaluation.Strengths ?? new List<string>())}
+- 약점: {string.Join(", ", evaluation.Weaknesses ?? new List<string>())}
+- 권장사항: {string.Join(", ", evaluation.Recommendations ?? new List<string>())}
+
+위 평가 결과를 바탕으로 사용자에게 친절하고 대화체로 작업 결과를 설명해주세요.";
+
+            var conversationInput = new ConversationInput
+            {
+                UserMessage = explanationPrompt,
+                ConversationHistory = context.Get<string>("HISTORY"),
+                SystemContext = "작업 실행 결과를 사용자에게 친절하게 설명하는 역할"
+            };
+
+            await foreach (var chunk in ((ConversationFunction)conversationalist).ExecuteStreamAsync(conversationInput, cancellationToken))
+            {
+                if (!string.IsNullOrEmpty(chunk.Content))
+                {
+                    yield return StreamChunk.Text(chunk.Content);
+                }
+            }
+        }
+        else
+        {
+            // Conversationalist가 없으면 기본 메시지
+            yield return StreamChunk.Text($"작업이 완료되었습니다. 품질 점수: {(int)(evaluation?.QualityScore * 100 ?? 0)}점");
+        }
+
         yield return StreamChunk.Complete($"전체 워크플로우 완료");
     }
 }

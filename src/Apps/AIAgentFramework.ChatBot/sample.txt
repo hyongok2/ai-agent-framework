@@ -1,0 +1,3 @@
+this is a sample text file.
+It contains multiple lines of text to demonstrate reading, transforming, and summarizing capabilities.
+The goal is to showcase the AI assistant's ability to process and produce a polished result.

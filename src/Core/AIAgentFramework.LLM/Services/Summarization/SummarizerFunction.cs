@@ -28,13 +28,76 @@ public class SummarizerFunction : LLMFunctionBase<SummarizationInput, Summarizat
 
     protected override SummarizationInput ExtractInput(ILLMContext context)
     {
+        string? content = null;
+
+        // 1. 다양한 파라미터 이름 시도 (대소문자 무시)
+        content = TryGetParameter(context, "CONTENT", "TEXT", "DATA", "INPUT", "SOURCE");
+
+        // 2. 파라미터가 없으면 이전 Step 결과 시도
+        if (string.IsNullOrWhiteSpace(content) && context.Parameters.Count > 0)
+        {
+            var firstValue = context.Parameters
+                .Where(p => !p.Key.Equals("SUMMARY_STYLE", StringComparison.OrdinalIgnoreCase))
+                .Where(p => !p.Key.Equals("REQUIREMENTS", StringComparison.OrdinalIgnoreCase))
+                .Where(p => !p.Key.Equals("HISTORY", StringComparison.OrdinalIgnoreCase))
+                .Where(p => !p.Key.StartsWith("USER_", StringComparison.OrdinalIgnoreCase))
+                .Where(p => !p.Key.StartsWith("SESSION_", StringComparison.OrdinalIgnoreCase))
+                .Where(p => !p.Key.StartsWith("EXECUTION_", StringComparison.OrdinalIgnoreCase))
+                .Select(p => p.Value?.ToString())
+                .FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
+
+            if (!string.IsNullOrWhiteSpace(firstValue))
+            {
+                content = firstValue;
+            }
+        }
+
+        // 3. 그래도 없으면 사용자 입력(UserInput) 시도
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            content = context.UserInput;
+        }
+
+        // 4. 최종적으로 없으면 에러
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            var availableParams = string.Join(", ", context.Parameters.Keys);
+            throw new InvalidOperationException(
+                $"CONTENT is required. Tried: " +
+                $"1) Parameter names: CONTENT, TEXT, DATA, INPUT, SOURCE. " +
+                $"2) Previous step results. " +
+                $"3) User input (context.UserInput). " +
+                $"Available parameters: {availableParams}");
+        }
+
         return new SummarizationInput
         {
-            Content = context.Get<string>("CONTENT")
-                ?? throw new InvalidOperationException("CONTENT is required"),
+            Content = content,
             SummaryStyle = context.Get<string>("SUMMARY_STYLE") ?? SummaryStyle.Standard,
             Requirements = context.Get<string>("REQUIREMENTS")
         };
+    }
+
+    /// <summary>
+    /// 여러 가능한 파라미터 이름을 시도하여 값을 가져옴
+    /// </summary>
+    private string? TryGetParameter(ILLMContext context, params string[] parameterNames)
+    {
+        foreach (var paramName in parameterNames)
+        {
+            // 대소문자 무시하고 찾기
+            var value = context.Parameters
+                .Where(p => p.Key.Equals(paramName, StringComparison.OrdinalIgnoreCase))
+                .Select(p => p.Value?.ToString())
+                .FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+        }
+
+        return null;
     }
 
     protected override IReadOnlyDictionary<string, object> PrepareVariables(SummarizationInput input)

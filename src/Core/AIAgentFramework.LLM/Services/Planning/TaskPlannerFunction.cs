@@ -126,9 +126,24 @@ public class TaskPlannerFunction : LLMFunctionBase<PlanningInput, PlanningResult
             }
         }
 
+        // Type 파싱
+        var planType = PlanType.ToolExecution; // 기본값
+        if (root.TryGetProperty("type", out var typeElement))
+        {
+            var typeStr = typeElement.GetString();
+            if (Enum.TryParse<PlanType>(typeStr, ignoreCase: true, out var parsedType))
+            {
+                planType = parsedType;
+            }
+        }
+
         return new PlanningResult
         {
+            Type = planType,
             Summary = root.GetProperty("summary").GetString() ?? string.Empty,
+            DirectResponse = root.TryGetProperty("directResponse", out var directResp)
+                ? directResp.GetString()
+                : null,
             Steps = steps,
             TotalEstimatedSeconds = root.TryGetProperty("totalEstimatedSeconds", out var totalSec)
                 ? totalSec.GetInt32()

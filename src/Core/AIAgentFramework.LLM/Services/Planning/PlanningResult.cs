@@ -6,9 +6,19 @@ namespace AIAgentFramework.LLM.Services.Planning;
 public class PlanningResult
 {
     /// <summary>
+    /// 계획 타입 - 사용자 요청의 유형 (도구 실행, 단순 응답 등)
+    /// </summary>
+    public PlanType Type { get; init; } = PlanType.ToolExecution;
+
+    /// <summary>
     /// 계획 요약
     /// </summary>
     public required string Summary { get; init; }
+
+    /// <summary>
+    /// 단순 응답/정보 제공 시 직접 응답 내용
+    /// </summary>
+    public string? DirectResponse { get; init; }
 
     /// <summary>
     /// 실행 단계 목록

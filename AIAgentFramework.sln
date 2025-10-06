@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIAgentFramework.Execution"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIAgentFramework.OrchestratorTest", "src\Apps\AIAgentFramework.OrchestratorTest\AIAgentFramework.OrchestratorTest.csproj", "{8E358B57-FE54-4218-826F-E30A0E02674C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIAgentFramework.ChatBot", "src\Apps\AIAgentFramework.ChatBot\AIAgentFramework.ChatBot.csproj", "{B7A9DF3E-49E4-42B1-90A5-0EBE09CA7FB3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,6 +105,18 @@ Global
 		{8E358B57-FE54-4218-826F-E30A0E02674C}.Release|x64.Build.0 = Release|Any CPU
 		{8E358B57-FE54-4218-826F-E30A0E02674C}.Release|x86.ActiveCfg = Release|Any CPU
 		{8E358B57-FE54-4218-826F-E30A0E02674C}.Release|x86.Build.0 = Release|Any CPU
+		{B7A9DF3E-49E4-42B1-90A5-0EBE09CA7FB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7A9DF3E-49E4-42B1-90A5-0EBE09CA7FB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7A9DF3E-49E4-42B1-90A5-0EBE09CA7FB3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B7A9DF3E-49E4-42B1-90A5-0EBE09CA7FB3}.Debug|x64.Build.0 = Debug|Any CPU
+		{B7A9DF3E-49E4-42B1-90A5-0EBE09CA7FB3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B7A9DF3E-49E4-42B1-90A5-0EBE09CA7FB3}.Debug|x86.Build.0 = Debug|Any CPU
+		{B7A9DF3E-49E4-42B1-90A5-0EBE09CA7FB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7A9DF3E-49E4-42B1-90A5-0EBE09CA7FB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7A9DF3E-49E4-42B1-90A5-0EBE09CA7FB3}.Release|x64.ActiveCfg = Release|Any CPU
+		{B7A9DF3E-49E4-42B1-90A5-0EBE09CA7FB3}.Release|x64.Build.0 = Release|Any CPU
+		{B7A9DF3E-49E4-42B1-90A5-0EBE09CA7FB3}.Release|x86.ActiveCfg = Release|Any CPU
+		{B7A9DF3E-49E4-42B1-90A5-0EBE09CA7FB3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -116,5 +130,6 @@ Global
 		{B217DF97-4ABB-49BB-8B80-06FF2BB77439} = {AD2A5A3B-A595-3E96-334A-002D08FE630C}
 		{7CFCBC71-5D58-444C-937E-7B0BBE297AC8} = {A1B2C3D4-E5F6-7890-1234-567890ABCDEF}
 		{8E358B57-FE54-4218-826F-E30A0E02674C} = {AD2A5A3B-A595-3E96-334A-002D08FE630C}
+		{B7A9DF3E-49E4-42B1-90A5-0EBE09CA7FB3} = {AD2A5A3B-A595-3E96-334A-002D08FE630C}
 	EndGlobalSection
 EndGlobal

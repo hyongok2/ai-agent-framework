@@ -73,68 +73,135 @@ public class ParameterProcessor : IParameterProcessor
 
         var result = parameters;
 
-        // JSON 문자열 값 내부의 변수만 매칭: "...{variable}..." 패턴
-        // 큰따옴표 안에 있는 {variable} 또는 {variable.property} 형식만 찾기
-        var pathPattern = new System.Text.RegularExpressions.Regex(@"""[^""]*?\{([^}]+)\}[^""]*?""");
-        var matches = pathPattern.Matches(result);
+        // 모든 {variable}, {variable.property}, {variable[index]}, {variable.property[index]} 패턴을 찾기
+        var variablePattern = new System.Text.RegularExpressions.Regex(@"\{([^}]+)\}");
+        var matches = variablePattern.Matches(result);
 
         foreach (System.Text.RegularExpressions.Match match in matches)
         {
-            // match.Value는 전체 문자열 (예: "content": "{upperContent}")
-            // 내부의 {variable} 패턴만 추출
-            var innerPattern = new System.Text.RegularExpressions.Regex(@"\{([^}]+)\}");
-            var innerMatches = innerPattern.Matches(match.Value);
+            var fullPath = match.Groups[1].Value; // 예: "fileList[0]" or "fileList.files[0]"
 
-            foreach (System.Text.RegularExpressions.Match innerMatch in innerMatches)
+            // 배열 인덱스 패턴 파싱: variable[index] or variable.property[index]
+            var indexPattern = new System.Text.RegularExpressions.Regex(@"^([^\[]+)(?:\[(\d+)\])?$");
+            var indexMatch = indexPattern.Match(fullPath);
+
+            if (!indexMatch.Success)
             {
-                var fullPath = innerMatch.Groups[1].Value; // 예: "fileContent.Content"
-                var parts = fullPath.Split('.');
-                var key = parts[0]; // 예: "fileContent"
-
-                if (!agentContext.Contains(key))
-                {
-                    continue;
-                }
-
-                var value = agentContext.Get<object>(key)?.ToString() ?? string.Empty;
-
-                // JSON 경로가 있는 경우 (예: variable.property)
-                if (parts.Length > 1)
-                {
-                    value = ExtractJsonProperty(value, parts[1]);
-                }
-                else
-                {
-                    // 단순 변수인 경우, JSON이면 Content 속성 자동 추출
-                    value = ExtractContentFromJson(value);
-                }
-
-                // JSON 문자열 안에 들어가는 경우 이스케이프
-                if (result.StartsWith("{") && result.Contains("\""))
-                {
-                    value = EscapeForJson(value);
-                }
-
-                result = result.Replace(innerMatch.Value, value);
+                continue;
             }
+
+            var pathWithoutIndex = indexMatch.Groups[1].Value; // 예: "fileList" or "fileList.files"
+            var arrayIndex = indexMatch.Groups[2].Success ? int.Parse(indexMatch.Groups[2].Value) : -1;
+
+            var parts = pathWithoutIndex.Split('.');
+            var key = parts[0]; // 예: "fileList"
+
+            if (!agentContext.Contains(key))
+            {
+                continue;
+            }
+
+            var value = agentContext.Get<object>(key)?.ToString() ?? string.Empty;
+
+            // JSON 경로가 있는 경우 (예: variable.property)
+            if (parts.Length > 1)
+            {
+                value = ExtractJsonProperty(value, parts[1]);
+            }
+            else
+            {
+                // 단순 변수인 경우, JSON이면 Content 속성 자동 추출
+                value = ExtractContentFromJson(value);
+            }
+
+            // 배열 인덱스 접근
+            if (arrayIndex >= 0)
+            {
+                value = ExtractArrayElement(value, arrayIndex);
+            }
+
+            // JSON 문자열 안에 들어가는 경우 이스케이프
+            if (result.StartsWith("{") && result.Contains("\""))
+            {
+                value = EscapeForJson(value);
+            }
+
+            result = result.Replace(match.Value, value);
         }
 
         return result;
     }
 
     /// <summary>
-    /// JSON 문자열에서 특정 속성 추출
+    /// JSON 배열에서 특정 인덱스의 요소 추출
+    /// </summary>
+    private string ExtractArrayElement(string jsonString, int index)
+    {
+        try
+        {
+            var jsonDoc = JsonDocument.Parse(jsonString);
+
+            // 배열인 경우
+            if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+            {
+                var array = jsonDoc.RootElement.EnumerateArray().ToList();
+                if (index >= 0 && index < array.Count)
+                {
+                    var element = array[index];
+                    return element.ValueKind == JsonValueKind.String
+                        ? element.GetString() ?? jsonString
+                        : element.ToString();
+                }
+            }
+            // 객체이면서 "files" 같은 배열 속성이 있는 경우
+            else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Object)
+            {
+                // files, items, data 등 일반적인 배열 속성 이름 시도
+                var arrayPropertyNames = new[] { "files", "items", "data", "results", "list" };
+
+                foreach (var propName in arrayPropertyNames)
+                {
+                    if (jsonDoc.RootElement.TryGetProperty(propName, out var arrayProp) &&
+                        arrayProp.ValueKind == JsonValueKind.Array)
+                    {
+                        var array = arrayProp.EnumerateArray().ToList();
+                        if (index >= 0 && index < array.Count)
+                        {
+                            var element = array[index];
+                            return element.ValueKind == JsonValueKind.String
+                                ? element.GetString() ?? jsonString
+                                : element.ToString();
+                        }
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // JSON 파싱 실패하면 원본 문자열 사용
+        }
+
+        return jsonString;
+    }
+
+    /// <summary>
+    /// JSON 문자열에서 특정 속성 추출 (대소문자 무시)
     /// </summary>
     private string ExtractJsonProperty(string jsonString, string propertyName)
     {
         try
         {
             var jsonDoc = JsonDocument.Parse(jsonString);
-            if (jsonDoc.RootElement.TryGetProperty(propertyName, out var property))
+
+            // 대소문자 무시하고 속성 찾기
+            var actualProperty = jsonDoc.RootElement.EnumerateObject()
+                .FirstOrDefault(p => p.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase));
+
+            if (actualProperty.Value.ValueKind != JsonValueKind.Undefined)
             {
-                return property.ValueKind == JsonValueKind.String
-                    ? property.GetString() ?? jsonString
-                    : property.ToString();
+                return actualProperty.Value.ValueKind == JsonValueKind.String
+                    ? actualProperty.Value.GetString() ?? jsonString
+                    : actualProperty.Value.ToString();
             }
         }
         catch
@@ -156,16 +223,20 @@ public class ParameterProcessor : IParameterProcessor
             var jsonDoc = JsonDocument.Parse(value);
             var root = jsonDoc.RootElement;
 
-            // 우선순위에 따라 속성 추출 시도
+            // 우선순위에 따라 속성 추출 시도 (대소문자 무시)
             var candidateProperties = new[] { "TransformedText", "Content", "Output", "Result", "Data" };
 
             foreach (var propName in candidateProperties)
             {
-                if (root.TryGetProperty(propName, out var prop))
+                // 대소문자 무시하고 속성 찾기
+                var actualProperty = root.EnumerateObject()
+                    .FirstOrDefault(p => p.Name.Equals(propName, StringComparison.OrdinalIgnoreCase));
+
+                if (actualProperty.Value.ValueKind != JsonValueKind.Undefined)
                 {
-                    return prop.ValueKind == JsonValueKind.String
-                        ? prop.GetString() ?? value
-                        : prop.ToString();
+                    return actualProperty.Value.ValueKind == JsonValueKind.String
+                        ? actualProperty.Value.GetString() ?? value
+                        : actualProperty.Value.ToString();
                 }
             }
 
