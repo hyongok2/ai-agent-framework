@@ -6,9 +6,9 @@ namespace AIAgentFramework.LLM.Services;
 
 /// <summary>
 /// LLM 기능의 기본 추상 클래스
-/// ILLMFunction을 구현하며 타입 안전성을 제공합니다.
+/// 타입 안전한 Input/Output을 사용하여 명확한 API를 제공합니다.
 /// </summary>
-public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction
+public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction<TInput, TOutput>
 {
     protected readonly IPromptRegistry PromptRegistry;
     protected readonly ILLMProvider LLMProvider;
@@ -30,9 +30,34 @@ public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction
 
     public virtual bool SupportsStreaming => Options.EnableStreaming;
 
+    /// <summary>
+    /// ILLMFunction base interface 구현 (비제네릭 - 동적 호출용)
+    /// </summary>
     public async Task<ILLMResult> ExecuteAsync(ILLMContext context, CancellationToken cancellationToken = default)
     {
         var input = ExtractInput(context);
+        return await ExecuteAsync(input, cancellationToken);
+    }
+
+    /// <summary>
+    /// ILLMFunction base interface 구현 (비제네릭 스트리밍)
+    /// </summary>
+    public async IAsyncEnumerable<ILLMStreamChunk> ExecuteStreamAsync(
+        ILLMContext context,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var input = ExtractInput(context);
+        await foreach (var chunk in ExecuteStreamAsync(input, cancellationToken))
+        {
+            yield return chunk;
+        }
+    }
+
+    /// <summary>
+    /// 타입 안전한 Execute (ILLMFunction&lt;TInput, TOutput&gt; 구현)
+    /// </summary>
+    public async Task<ILLMResult> ExecuteAsync(TInput input, CancellationToken cancellationToken = default)
+    {
         var variables = PrepareVariables(input);
         var validation = ValidateVariables(variables);
 
@@ -50,7 +75,7 @@ public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction
     }
 
     public virtual async IAsyncEnumerable<ILLMStreamChunk> ExecuteStreamAsync(
-        ILLMContext context,
+        TInput input,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         if (!SupportsStreaming)
@@ -58,7 +83,6 @@ public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction
             throw new NotSupportedException($"{Role} does not support streaming");
         }
 
-        var input = ExtractInput(context);
         var variables = PrepareVariables(input);
         var validation = ValidateVariables(variables);
 
@@ -103,12 +127,24 @@ public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction
         };
     }
 
+    /// <summary>
+    /// ILLMContext로부터 TInput 추출 (비제네릭 호출 지원)
+    /// </summary>
     protected abstract TInput ExtractInput(ILLMContext context);
 
+    /// <summary>
+    /// Input을 프롬프트 변수로 변환
+    /// </summary>
     protected abstract IReadOnlyDictionary<string, object> PrepareVariables(TInput input);
 
+    /// <summary>
+    /// LLM 응답을 Output으로 파싱
+    /// </summary>
     protected abstract TOutput ParseResponse(string response);
 
+    /// <summary>
+    /// 최종 Result 생성
+    /// </summary>
     protected abstract ILLMResult CreateResult(string rawResponse, TOutput output);
 
     protected abstract string GetPromptName();

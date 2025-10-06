@@ -34,7 +34,9 @@
       "Bash(timeout:*)",
       "Bash(echo:*)",
       "Bash(printf \"3\\n\")",
-      "Bash(Remove-Item \"c:\\src\\work\\ai\\ai-agent-framework\\src\\Core\\AIAgentFramework.Core\\Models\\ExecutionContext.cs\" -Force)"
+      "Bash(Remove-Item \"c:\\src\\work\\ai\\ai-agent-framework\\src\\Core\\AIAgentFramework.Core\\Models\\ExecutionContext.cs\" -Force)",
+      "Bash(Select-Object -Last 50)",
+      "Bash(Set-Location src/Apps/AIAgentFramework.Console)"
     ],
     "deny": [],
     "ask": []

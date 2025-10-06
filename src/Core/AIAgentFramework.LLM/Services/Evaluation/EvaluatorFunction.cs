@@ -28,10 +28,8 @@ public class EvaluatorFunction : LLMFunctionBase<EvaluationInput, EvaluationResu
     {
         return new EvaluationInput
         {
-            TaskDescription = context.Get<string>("TASK_DESCRIPTION")
-                ?? throw new InvalidOperationException("TASK_DESCRIPTION is required"),
-            ExecutionResult = context.Get<string>("EXECUTION_RESULT")
-                ?? throw new InvalidOperationException("EXECUTION_RESULT is required"),
+            TaskDescription = context.Get<string>("TASK_DESCRIPTION") ?? throw new InvalidOperationException("TASK_DESCRIPTION is required"),
+            ExecutionResult = context.Get<string>("EXECUTION_RESULT") ?? throw new InvalidOperationException("EXECUTION_RESULT is required"),
             ExpectedOutcome = context.Get<string>("EXPECTED_OUTCOME"),
             EvaluationCriteria = context.Get<string>("EVALUATION_CRITERIA")
         };
