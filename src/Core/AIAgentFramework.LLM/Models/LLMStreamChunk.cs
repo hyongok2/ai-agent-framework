@@ -26,4 +26,9 @@ public class LLMStreamChunk : ILLMStreamChunk
     /// 누적 토큰 사용량
     /// </summary>
     public int AccumulatedTokens { get; init; }
+
+    /// <summary>
+    /// 파싱된 결과 (마지막 청크에만 포함)
+    /// </summary>
+    public object? ParsedResult { get; init; }
 }

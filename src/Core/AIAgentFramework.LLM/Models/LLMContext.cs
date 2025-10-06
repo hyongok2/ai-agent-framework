@@ -1,3 +1,4 @@
+using AIAgentFramework.Core.Abstractions;
 using AIAgentFramework.LLM.Abstractions;
 
 namespace AIAgentFramework.LLM.Models;
@@ -24,4 +25,19 @@ public class LLMContext : ILLMContext
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
     IReadOnlyDictionary<string, object> AIAgentFramework.Core.Abstractions.IExecutionContext.Metadata => new Dictionary<string, object>();
+
+    /// <summary>
+    /// AgentContext로부터 LLMContext 생성 (글로벌 컨텍스트 기반)
+    /// </summary>
+    public static LLMContext FromAgentContext(IAgentContext agentContext, string userInput)
+    {
+        return new LLMContext
+        {
+            UserInput = userInput,
+            Parameters = new Dictionary<string, object>(agentContext.Variables),
+            ExecutionId = agentContext.Get<string>("ExecutionId") ?? Guid.NewGuid().ToString(),
+            UserId = agentContext.Get<string>("UserId"),
+            SessionId = agentContext.Get<string>("SessionId") ?? Guid.NewGuid().ToString()
+        };
+    }
 }

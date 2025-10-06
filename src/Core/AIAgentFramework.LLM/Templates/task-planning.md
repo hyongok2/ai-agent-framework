@@ -12,7 +12,7 @@ You are an expert task planner. Your role is to analyze user requests and create
 
 ## User Request
 
-{{USER_REQUEST}}
+{{{USER_REQUEST}}}
 
 {{#if CONTEXT}}
 ## Current Context

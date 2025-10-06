@@ -32,23 +32,43 @@ var promptRegistry = new PromptRegistry(templatesPath);
 var llmRegistry = new LLMRegistry();
 
 // ========================================
+// 인자 처리: 비대화형 테스트 실행
+// ========================================
+
+if (args.Length > 0 && args[0] == "--direct-test")
+{
+    try
+    {
+        Console.WriteLine("=== 비대화형 테스트 모드 ===\n");
+        await LLMFunctionTests.TestExecutor(promptRegistry, toolRegistry, llmRegistry, ollama);
+        Console.WriteLine("\n✅ 테스트 완료");
+        return;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"\n❌ 테스트 실패: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        return;
+    }
+}
+
+// ========================================
 // 메인 메뉴
 // ========================================
 
 while (true)
 {
-    Console.Clear();
+    try { Console.Clear(); } catch { } // 파이프 입력 시 예외 무시
     Console.WriteLine("╔════════════════════════════════════════════════╗");
     Console.WriteLine("║   AI Agent Framework - 테스트 메뉴             ║");
     Console.WriteLine("╠════════════════════════════════════════════════╣");
     Console.WriteLine("║  1. Ollama Provider 테스트                     ║");
     Console.WriteLine("║  2. PromptRegistry 테스트                      ║");
-    Console.WriteLine("║  3. ToolSelectorFunction 테스트                ║");
-    Console.WriteLine("║  4. Streaming 테스트                           ║");
-    Console.WriteLine("║  5. TaskPlanner 테스트                         ║");
-    Console.WriteLine("║  6. ParameterGenerator 테스트                  ║");
-    Console.WriteLine("║  7. Evaluator 테스트                           ║");
-    Console.WriteLine("║  8. Summarizer 테스트                          ║");
+    Console.WriteLine("║  3. TaskPlanner 테스트                         ║");
+    Console.WriteLine("║  4. ParameterGenerator 테스트                  ║");
+    Console.WriteLine("║  5. Evaluator 테스트                           ║");
+    Console.WriteLine("║  6. Summarizer 테스트                          ║");
+    Console.WriteLine("║  7. PlanExecutor 테스트                        ║");
     Console.WriteLine("║  0. 종료                                       ║");
     Console.WriteLine("╚════════════════════════════════════════════════╝");
     Console.Write("\n선택: ");
@@ -66,22 +86,19 @@ while (true)
                 await PromptTests.TestPromptRegistry(promptRegistry, toolRegistry, ollama);
                 break;
             case "3":
-                await LLMFunctionTests.TestToolSelector(promptRegistry, toolRegistry, ollama);
-                break;
-            case "4":
-                await LLMFunctionTests.TestStreaming(promptRegistry, toolRegistry, ollama);
-                break;
-            case "5":
                 await LLMFunctionTests.TestTaskPlanner(promptRegistry, toolRegistry, llmRegistry, ollama);
                 break;
-            case "6":
+            case "4":
                 await LLMFunctionTests.TestParameterGenerator(promptRegistry, toolRegistry, ollama);
                 break;
-            case "7":
+            case "5":
                 await LLMFunctionTests.TestEvaluator(promptRegistry, ollama);
                 break;
-            case "8":
+            case "6":
                 await LLMFunctionTests.TestSummarizer(promptRegistry, ollama);
+                break;
+            case "7":
+                await LLMFunctionTests.TestExecutor(promptRegistry, toolRegistry, llmRegistry, ollama);
                 break;
             case "0":
                 Console.WriteLine("\n프로그램을 종료합니다.");
@@ -97,5 +114,5 @@ while (true)
     }
 
     Console.WriteLine("\n\n계속하려면 아무 키나 누르세요...");
-    Console.ReadKey();
+    try { Console.ReadKey(); } catch { Console.ReadLine(); }
 }

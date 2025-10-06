@@ -1,23 +1,6 @@
 {
   "prompts": [
     {
-      "name": "tool-selection",
-      "role": "Planner",
-      "templatePath": "tool-selection/base.txt",
-      "requiredVariables": ["TOOLS", "USER_INPUT"],
-      "optionalVariables": ["CONTEXT", "HISTORY"],
-      "metadata": {
-        "version": "1.0",
-        "description": "사용자 요청에 맞는 Tool 선택",
-        "author": "System",
-        "createdAt": "2025-10-05T00:00:00Z",
-        "tags": {
-          "category": "tool-management",
-          "outputFormat": "json"
-        }
-      }
-    },
-    {
       "name": "task-planning",
       "role": "Planner",
       "templatePath": "task-planning.md",

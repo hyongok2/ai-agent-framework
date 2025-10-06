@@ -25,4 +25,9 @@ public interface ILLMStreamChunk
     /// 누적 토큰 사용량
     /// </summary>
     int AccumulatedTokens { get; }
+
+    /// <summary>
+    /// 파싱된 결과 (마지막 청크에만 포함)
+    /// </summary>
+    object? ParsedResult { get; }
 }

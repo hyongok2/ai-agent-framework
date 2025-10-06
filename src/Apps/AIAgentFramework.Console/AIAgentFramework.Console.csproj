@@ -11,6 +11,7 @@
     <ProjectReference Include="..\..\Core\AIAgentFramework.Core\AIAgentFramework.Core.csproj" />
     <ProjectReference Include="..\..\Core\AIAgentFramework.Tools\AIAgentFramework.Tools.csproj" />
     <ProjectReference Include="..\..\Core\AIAgentFramework.LLM\AIAgentFramework.LLM.csproj" />
+    <ProjectReference Include="..\..\Core\AIAgentFramework.Execution\AIAgentFramework.Execution.csproj" />
   </ItemGroup>
 
 </Project>

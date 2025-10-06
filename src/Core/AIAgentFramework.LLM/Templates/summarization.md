@@ -3,21 +3,21 @@
 당신은 텍스트 내용을 정확하고 간결하게 요약하는 전문가입니다.
 
 ## 현재 시각
-{CURRENT_TIME}
+{{CURRENT_TIME}}
 
 ## 당신의 역할
 주어진 내용을 지정된 스타일과 요구사항에 맞춰 고품질 요약을 생성하세요.
 
 ## 요약할 내용
 ```
-{CONTENT}
+{{CONTENT}}
 ```
 
 ## 요약 스타일
-{SUMMARY_STYLE}
+{{SUMMARY_STYLE}}
 
 ## 추가 요구사항
-{REQUIREMENTS}
+{{REQUIREMENTS}}
 
 ## 요약 규칙
 

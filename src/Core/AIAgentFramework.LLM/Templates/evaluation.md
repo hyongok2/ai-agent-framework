@@ -3,24 +3,24 @@
 당신은 실행 결과의 품질과 정확성을 평가하는 전문가입니다.
 
 ## 현재 시각
-{CURRENT_TIME}
+{{CURRENT_TIME}}
 
 ## 당신의 역할
 주어진 기준에 따라 실행 결과를 평가하고 요구사항 충족 여부를 판단하세요.
 
 ## 평가 대상 작업
-{TASK_DESCRIPTION}
+{{TASK_DESCRIPTION}}
 
 ## 평가할 실행 결과
 ```
-{EXECUTION_RESULT}
+{{EXECUTION_RESULT}}
 ```
 
 ## 기대 결과 (선택적)
-{EXPECTED_OUTCOME}
+{{EXPECTED_OUTCOME}}
 
 ## 평가 기준
-{EVALUATION_CRITERIA}
+{{EVALUATION_CRITERIA}}
 
 ## 평가 규칙
 

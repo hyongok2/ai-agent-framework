@@ -4,25 +4,25 @@ You are an expert at generating precise tool parameters based on user requests a
 
 ## User's Original Request
 
-{{USER_REQUEST}}
+{{{USER_REQUEST}}}
 
 ## Current Step
 
-**Step Description**: {{STEP_DESCRIPTION}}
+**Step Description**: {{{STEP_DESCRIPTION}}}
 
 ## Tool Information
 
-**Tool Name**: {{TOOL_NAME}}
+**Tool Name**: {{{TOOL_NAME}}}
 
 **Input Schema**:
 ```json
-{{TOOL_INPUT_SCHEMA}}
+{{{TOOL_INPUT_SCHEMA}}}
 ```
 
 {{#if PREVIOUS_RESULTS}}
 ## Previous Step Results
 
-{{PREVIOUS_RESULTS}}
+{{{PREVIOUS_RESULTS}}}
 
 **IMPORTANT**: Use these actual results when referencing previous outputs. Extract the exact values needed.
 {{/if}}

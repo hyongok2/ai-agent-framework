@@ -72,26 +72,34 @@ public abstract class LLMFunctionBase<TInput, TOutput> : ILLMFunction
 
         var index = 0;
         var accumulatedTokens = 0;
+        var accumulatedResponse = new System.Text.StringBuilder();
 
         await foreach (var chunk in CallLLMStreamAsync(rendered, cancellationToken))
         {
             accumulatedTokens += chunk.Length / 4; // 대략적인 토큰 추정
+            accumulatedResponse.Append(chunk);
 
             yield return new LLMStreamChunk
             {
                 Index = index++,
                 Content = chunk,
                 IsFinal = false,
-                AccumulatedTokens = accumulatedTokens
+                AccumulatedTokens = accumulatedTokens,
+                ParsedResult = null
             };
         }
+
+        // 마지막 청크: 파싱된 결과 포함
+        var rawResponse = accumulatedResponse.ToString();
+        var parsedOutput = ParseResponse(rawResponse);
 
         yield return new LLMStreamChunk
         {
             Index = index,
             Content = string.Empty,
             IsFinal = true,
-            AccumulatedTokens = accumulatedTokens
+            AccumulatedTokens = accumulatedTokens,
+            ParsedResult = parsedOutput
         };
     }
 
