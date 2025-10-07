@@ -1,19 +1,55 @@
 {
   "prompts": [
     {
+      "name": "intent-analysis",
+      "role": "IntentAnalyzer",
+      "templatePath": "intent-analysis.md",
+      "requiredVariables": ["USER_INPUT"],
+      "optionalVariables": ["HISTORY", "CONTEXT"],
+      "metadata": {
+        "version": "1.0",
+        "description": "사용자 입력의 의도 파악 및 즉시 응답 가능 여부 판단 (Chat/Question/Task)",
+        "author": "System",
+        "createdAt": "2025-10-07T00:00:00Z",
+        "tags": {
+          "category": "intent-analysis",
+          "outputFormat": "json",
+          "complexity": "low"
+        }
+      }
+    },
+    {
       "name": "task-planning",
       "role": "Planner",
       "templatePath": "task-planning.md",
       "requiredVariables": ["TOOLS", "LLM_FUNCTIONS", "USER_REQUEST"],
       "optionalVariables": ["CONTEXT", "HISTORY", "PREVIOUS_RESULTS"],
       "metadata": {
-        "version": "1.0",
-        "description": "사용자 요청을 분석하여 실행 가능한 Task 계획 생성",
+        "version": "2.0",
+        "description": "사용자 요청을 분석하여 실행 가능한 Task 계획 생성 (UniversalLLM + ResponseGuide 지원)",
         "author": "System",
-        "createdAt": "2025-10-06T00:00:00Z",
+        "createdAt": "2025-10-07T00:00:00Z",
         "tags": {
           "category": "task-planning",
           "outputFormat": "json",
+          "complexity": "high"
+        }
+      }
+    },
+    {
+      "name": "universal-llm",
+      "role": "Universal",
+      "templatePath": "universal-llm.md",
+      "requiredVariables": ["TASK_TYPE", "CONTENT", "INSTRUCTION", "FORMAT", "STYLE"],
+      "optionalVariables": ["PERSONA", "OUTPUT_SCHEMA", "CONSTRAINTS", "EXAMPLES", "ADDITIONAL_CONTEXT"],
+      "metadata": {
+        "version": "1.0",
+        "description": "범용 LLM - Persona와 ResponseGuide를 받아 모든 LLM 작업 수행 (Summarize, Analyze, Convert, Generate, Extract, Classify, Reason, Refine, Explain 등 통합)",
+        "author": "System",
+        "createdAt": "2025-10-07T00:00:00Z",
+        "tags": {
+          "category": "universal",
+          "outputFormat": "dynamic",
           "complexity": "high"
         }
       }
@@ -55,24 +91,6 @@
       }
     },
     {
-      "name": "summarization",
-      "role": "Summarizer",
-      "templatePath": "summarization.md",
-      "requiredVariables": ["CONTENT"],
-      "optionalVariables": ["SUMMARY_STYLE", "REQUIREMENTS"],
-      "metadata": {
-        "version": "1.0",
-        "description": "텍스트 내용 요약",
-        "author": "System",
-        "createdAt": "2025-10-06T00:00:00Z",
-        "tags": {
-          "category": "content-processing",
-          "outputFormat": "json",
-          "complexity": "low"
-        }
-      }
-    },
-    {
       "name": "conversation",
       "role": "Conversationalist",
       "templatePath": "conversation.md",
@@ -87,168 +105,6 @@
           "category": "conversation",
           "outputFormat": "text",
           "complexity": "low"
-        }
-      }
-    },
-    {
-      "name": "analysis",
-      "role": "Analyzer",
-      "templatePath": "analysis.md",
-      "requiredVariables": ["CONTENT"],
-      "optionalVariables": ["ANALYSIS_TYPE", "FOCUS_AREAS"],
-      "metadata": {
-        "version": "1.0",
-        "description": "데이터 분석 및 통찰 도출",
-        "author": "System",
-        "createdAt": "2025-10-06T00:00:00Z",
-        "tags": {
-          "category": "analysis",
-          "outputFormat": "json",
-          "complexity": "medium"
-        }
-      }
-    },
-    {
-      "name": "classification",
-      "role": "Classifier",
-      "templatePath": "classification.md",
-      "requiredVariables": ["CONTENT"],
-      "optionalVariables": ["CATEGORIES", "CLASSIFICATION_CRITERIA"],
-      "metadata": {
-        "version": "1.0",
-        "description": "데이터 분류 및 카테고리화",
-        "author": "System",
-        "createdAt": "2025-10-06T00:00:00Z",
-        "tags": {
-          "category": "classification",
-          "outputFormat": "json",
-          "complexity": "medium"
-        }
-      }
-    },
-    {
-      "name": "conversion",
-      "role": "Converter",
-      "templatePath": "conversion.md",
-      "requiredVariables": ["CONTENT", "TARGET_FORMAT"],
-      "optionalVariables": ["SOURCE_FORMAT", "CONVERSION_RULES"],
-      "metadata": {
-        "version": "1.0",
-        "description": "데이터 형식 변환",
-        "author": "System",
-        "createdAt": "2025-10-06T00:00:00Z",
-        "tags": {
-          "category": "conversion",
-          "outputFormat": "json",
-          "complexity": "medium"
-        }
-      }
-    },
-    {
-      "name": "explanation",
-      "role": "Explainer",
-      "templatePath": "explanation.md",
-      "requiredVariables": ["CONTENT"],
-      "optionalVariables": ["AUDIENCE_LEVEL", "EXPLANATION_STYLE"],
-      "metadata": {
-        "version": "1.0",
-        "description": "개념 설명 및 이해 돕기",
-        "author": "System",
-        "createdAt": "2025-10-06T00:00:00Z",
-        "tags": {
-          "category": "explanation",
-          "outputFormat": "json",
-          "complexity": "medium"
-        }
-      }
-    },
-    {
-      "name": "extraction",
-      "role": "Extractor",
-      "templatePath": "extraction.md",
-      "requiredVariables": ["CONTENT"],
-      "optionalVariables": ["EXTRACTION_TARGETS", "EXTRACTION_RULES"],
-      "metadata": {
-        "version": "1.0",
-        "description": "데이터 추출 및 구조화",
-        "author": "System",
-        "createdAt": "2025-10-06T00:00:00Z",
-        "tags": {
-          "category": "extraction",
-          "outputFormat": "json",
-          "complexity": "medium"
-        }
-      }
-    },
-    {
-      "name": "generation",
-      "role": "Generator",
-      "templatePath": "generation.md",
-      "requiredVariables": ["CONTENT_TYPE"],
-      "optionalVariables": ["REQUIREMENTS", "STYLE", "CONSTRAINTS"],
-      "metadata": {
-        "version": "1.0",
-        "description": "콘텐츠 생성",
-        "author": "System",
-        "createdAt": "2025-10-06T00:00:00Z",
-        "tags": {
-          "category": "generation",
-          "outputFormat": "json",
-          "complexity": "high"
-        }
-      }
-    },
-    {
-      "name": "reasoning",
-      "role": "Reasoner",
-      "templatePath": "reasoning.md",
-      "requiredVariables": ["PROBLEM"],
-      "optionalVariables": ["CONTEXT", "CONSTRAINTS"],
-      "metadata": {
-        "version": "1.0",
-        "description": "논리적 추론 및 문제 해결",
-        "author": "System",
-        "createdAt": "2025-10-06T00:00:00Z",
-        "tags": {
-          "category": "reasoning",
-          "outputFormat": "json",
-          "complexity": "high"
-        }
-      }
-    },
-    {
-      "name": "refinement",
-      "role": "Refiner",
-      "templatePath": "refinement.md",
-      "requiredVariables": ["CONTENT"],
-      "optionalVariables": ["REFINEMENT_GOALS", "QUALITY_CRITERIA"],
-      "metadata": {
-        "version": "1.0",
-        "description": "콘텐츠 개선 및 정제",
-        "author": "System",
-        "createdAt": "2025-10-06T00:00:00Z",
-        "tags": {
-          "category": "refinement",
-          "outputFormat": "json",
-          "complexity": "medium"
-        }
-      }
-    },
-    {
-      "name": "validation",
-      "role": "Validator",
-      "templatePath": "validation.md",
-      "requiredVariables": ["CONTENT"],
-      "optionalVariables": ["VALIDATION_RULES", "VALIDATION_TYPE"],
-      "metadata": {
-        "version": "1.0",
-        "description": "데이터 유효성 검증",
-        "author": "System",
-        "createdAt": "2025-10-06T00:00:00Z",
-        "tags": {
-          "category": "validation",
-          "outputFormat": "json",
-          "complexity": "medium"
         }
       }
     }

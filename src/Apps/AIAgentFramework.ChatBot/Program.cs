@@ -8,20 +8,12 @@ using AIAgentFramework.Execution.Services;
 using AIAgentFramework.LLM.Abstractions;
 using AIAgentFramework.LLM.Models;
 using AIAgentFramework.LLM.Providers;
-using AIAgentFramework.LLM.Services.Analysis;
-using AIAgentFramework.LLM.Services.Classification;
 using AIAgentFramework.LLM.Services.Conversation;
-using AIAgentFramework.LLM.Services.Conversion;
 using AIAgentFramework.LLM.Services.Evaluation;
-using AIAgentFramework.LLM.Services.Explanation;
-using AIAgentFramework.LLM.Services.Extraction;
-using AIAgentFramework.LLM.Services.Generation;
+using AIAgentFramework.LLM.Services.IntentAnalysis;
 using AIAgentFramework.LLM.Services.ParameterGeneration;
 using AIAgentFramework.LLM.Services.Planning;
-using AIAgentFramework.LLM.Services.Reasoning;
-using AIAgentFramework.LLM.Services.Refinement;
-using AIAgentFramework.LLM.Services.Summarization;
-using AIAgentFramework.LLM.Services.Validation;
+using AIAgentFramework.LLM.Services.Universal;
 using AIAgentFramework.Tools.Abstractions;
 using AIAgentFramework.Tools.BuiltIn.DirectoryCreator;
 using AIAgentFramework.Tools.BuiltIn.DirectoryReader;
@@ -63,39 +55,21 @@ var llmOptions = new LLMFunctionOptions
     ModelName = "gpt-oss:20b"
 };
 
-// Core LLM Functions
+// Core LLM Functions - New Architecture (IntentAnalyzer → Planner → UniversalLLM)
+var intentAnalyzer = new IntentAnalyzerFunction(promptRegistry, ollama, llmOptions, logger);
 var planner = new TaskPlannerFunction(promptRegistry, ollama, toolRegistry, llmRegistry, llmOptions, logger);
+var universalLLM = new UniversalLLMFunction(promptRegistry, ollama, llmOptions, logger);
 var parameterGenerator = new ParameterGeneratorFunction(promptRegistry, ollama, llmOptions, logger);
 var evaluator = new EvaluatorFunction(promptRegistry, ollama, llmOptions, logger);
 var conversationalist = new ConversationFunction(promptRegistry, ollama, llmOptions, logger);
 
-// Analysis & Processing Functions
-var analyzer = new AnalyzerFunction(promptRegistry, ollama, llmOptions, logger);
-var summarizer = new SummarizerFunction(promptRegistry, ollama, llmOptions, logger);
-var converter = new ConverterFunction(promptRegistry, ollama, llmOptions, logger);
-var generator = new GeneratorFunction(promptRegistry, ollama, llmOptions, logger);
-var refiner = new RefinerFunction(promptRegistry, ollama, llmOptions, logger);
-var extractor = new ExtractorFunction(promptRegistry, ollama, llmOptions, logger);
-var classifier = new ClassifierFunction(promptRegistry, ollama, llmOptions, logger);
-var validator = new ValidatorFunction(promptRegistry, ollama, llmOptions, logger);
-var reasoner = new ReasonerFunction(promptRegistry, ollama, llmOptions, logger);
-var explainer = new ExplainerFunction(promptRegistry, ollama, llmOptions, logger);
-
 // Register all LLM Functions
+llmRegistry.Register(intentAnalyzer);
 llmRegistry.Register(planner);
+llmRegistry.Register(universalLLM);
 llmRegistry.Register(parameterGenerator);
 llmRegistry.Register(evaluator);
 llmRegistry.Register(conversationalist);
-llmRegistry.Register(analyzer);
-llmRegistry.Register(summarizer);
-llmRegistry.Register(converter);
-llmRegistry.Register(generator);
-llmRegistry.Register(refiner);
-llmRegistry.Register(extractor);
-llmRegistry.Register(classifier);
-llmRegistry.Register(validator);
-llmRegistry.Register(reasoner);
-llmRegistry.Register(explainer);
 
 // Execution 구성요소 설정
 var executableResolver = new ExecutableResolver(toolRegistry, llmRegistry);

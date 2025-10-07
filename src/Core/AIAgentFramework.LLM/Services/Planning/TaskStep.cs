@@ -1,3 +1,5 @@
+using AIAgentFramework.LLM.Services.Universal;
+
 namespace AIAgentFramework.LLM.Services.Planning;
 
 /// <summary>
@@ -40,4 +42,10 @@ public class TaskStep
     /// 예상 실행 시간 (초)
     /// </summary>
     public int? EstimatedSeconds { get; init; }
+
+    /// <summary>
+    /// UniversalLLM 사용 시 ResponseGuide (선택적)
+    /// ToolName이 "UniversalLLM"인 경우 사용
+    /// </summary>
+    public ResponseGuide? ResponseGuide { get; init; }
 }

@@ -74,10 +74,31 @@ public class ParameterProcessor : IParameterProcessor
             return false;
         }
 
-        // {variable} 형태의 placeholder가 있는지 확인
-        var hasPlaceholder = parameters.Contains('{') && parameters.Contains('}');
+        // {variable_name} 형태의 placeholder 찾기
+        // JSON의 {} 와 구분하기 위해 정규식 사용
+        // {word} 패턴 중 앞뒤에 따옴표가 없는 것이 placeholder
+        var placeholderPattern = @"\{(\w+)\}";
+        var matches = System.Text.RegularExpressions.Regex.Matches(parameters, placeholderPattern);
 
-        return !hasPlaceholder;
+        foreach (System.Text.RegularExpressions.Match match in matches)
+        {
+            var index = match.Index;
+            // 앞에 따옴표가 있으면 JSON 키이므로 스킵
+            if (index > 0 && parameters[index - 1] == '"')
+            {
+                continue;
+            }
+            // 뒤에 따옴표가 있으면 JSON 값이므로 스킵
+            if (index + match.Length < parameters.Length && parameters[index + match.Length] == '"')
+            {
+                continue;
+            }
+
+            // placeholder 발견
+            return false;
+        }
+
+        return true;
     }
 
 

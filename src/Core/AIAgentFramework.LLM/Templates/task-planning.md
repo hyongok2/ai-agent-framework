@@ -20,39 +20,54 @@
 
 ## Task
 
-Classify request type and create plan:
+Create execution plan using available tools and Universal LLM.
 
-**Types:**
-- **ToolExecution**: 파일/명령/데이터 작업 필요
-- **SimpleResponse**: 인사/감사/단순 대화
-- **Information**: 설명/지식 질문
-- **Clarification**: 불명확, 추가정보 필요
+**Tool vs Universal:**
+- **Tools**: File read/write, shell command, directory operations
+- **Universal**: Text analysis, summarization, translation, extraction, Q&A
+
+**Universal LLM Usage (REQUIRED for text processing):**
+- toolName: "Universal"
+- parameters: { "taskType": "analyze|summarize|translate|extract|answer", "content": "{data}" }
+- responseGuide: ALWAYS include { "instruction": "what to do", "format": "JSON|Text", "style": "concise" }
 
 **Output JSON:**
 ```json
 {
-  "type": "ToolExecution|SimpleResponse|Information|Clarification",
-  "summary": "작업 설명",
-  "directResponse": "직접 응답 (non-ToolExecution만)",
+  "type": "ToolExecution",
+  "summary": "Plan summary",
   "steps": [
     {
       "stepNumber": 1,
-      "description": "단계 설명",
-      "toolName": "도구명",
-      "parameters": "파라미터",
-      "outputVariable": "변수명",
+      "description": "Read file",
+      "toolName": "FileReader",
+      "parameters": {"path": "file.txt"},
+      "outputVariable": "content",
       "dependsOn": [],
       "estimatedSeconds": 5
+    },
+    {
+      "stepNumber": 2,
+      "description": "Summarize content",
+      "toolName": "Universal",
+      "parameters": {"taskType": "summarize", "content": "{content}"},
+      "outputVariable": "summary",
+      "dependsOn": [1],
+      "estimatedSeconds": 10,
+      "responseGuide": {
+        "instruction": "Create brief summary",
+        "format": "Text",
+        "style": "concise"
+      }
     }
   ],
   "totalEstimatedSeconds": 30,
-  "isExecutable": true,
-  "executionBlocker": null,
-  "constraints": []
+  "isExecutable": true
 }
 ```
 
 **Rules:**
-- 이전 단계 결과 참조: `{variableName}`
-- 사용 가능한 도구만 사용
-- 실행 불가시 `isExecutable: false` + `executionBlocker` 설명
+- Reference previous step output: `{varName}`
+- dependsOn: Use step numbers [1, 2], not variable names
+- Universal steps MUST have responseGuide
+- Output JSON only, no markdown

@@ -2,9 +2,9 @@ using System.Text.Json;
 using AIAgentFramework.Core.Abstractions;
 using AIAgentFramework.Execution.Abstractions;
 using AIAgentFramework.Execution.Models;
+using AIAgentFramework.LLM.Abstractions;
 using AIAgentFramework.LLM.Models;
 using AIAgentFramework.LLM.Services.Planning;
-using AIAgentFramework.LLM.Services.Summarization;
 
 namespace AIAgentFramework.Execution.Services;
 
@@ -81,6 +81,32 @@ public class LLMFunctionStepExecutor : IStepExecutor
             }
         }
 
+        // UniversalLLM인 경우 ResponseGuide를 파라미터로 추가
+        if (llmFunction.Role == LLMRole.Universal)
+        {
+            if (step.ResponseGuide == null)
+            {
+                throw new InvalidOperationException(
+                    $"Step {step.StepNumber} ({step.ToolName}): UniversalLLM requires ResponseGuide. " +
+                    "Check Planner prompt configuration."
+                );
+            }
+
+            var mergedParams = new Dictionary<string, object>(llmContext.Parameters)
+            {
+                ["RESPONSE_GUIDE"] = JsonSerializer.Serialize(step.ResponseGuide, _jsonOptions)
+            };
+
+            llmContext = new LLMContext
+            {
+                UserInput = userRequest,
+                Parameters = mergedParams,
+                ExecutionId = llmContext.ExecutionId,
+                UserId = llmContext.UserId,
+                SessionId = llmContext.SessionId
+            };
+        }
+
         // 스트리밍 지원 여부 확인
         object? parsedData = null;
         string? rawResponse = null;
@@ -123,13 +149,6 @@ public class LLMFunctionStepExecutor : IStepExecutor
         if (parsedData != null)
         {
             output = JsonSerializer.Serialize(parsedData, _jsonOptions);
-
-            // 파싱된 결과에서 성공/오류 정보 추출 (SummarizationResult 등)
-            if (parsedData is SummarizationResult summaryResult)
-            {
-                isSuccess = string.IsNullOrEmpty(summaryResult.ErrorMessage);
-                errorMessage = summaryResult.ErrorMessage;
-            }
         }
         else
         {

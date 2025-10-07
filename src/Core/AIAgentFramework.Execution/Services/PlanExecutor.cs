@@ -213,10 +213,11 @@ public class PlanExecutor : IExecutor
     {
         return role switch
         {
-            LLMRole.Summarizer => @"{""type"":""object"",""properties"":{""text"":{""type"":""string""}},""required"":[""text""]}",
-            LLMRole.Analyzer => @"{""type"":""object"",""properties"":{""content"":{""type"":""string""}},""required"":[""content""]}",
-            LLMRole.Converter => @"{""type"":""object"",""properties"":{""text"":{""type"":""string""},""mode"":{""type"":""string""}},""required"":[""text"",""mode""]}",
-            LLMRole.Generator => @"{""type"":""object"",""properties"":{""prompt"":{""type"":""string""}},""required"":[""prompt""]}",
+            LLMRole.IntentAnalyzer => @"{""type"":""object"",""properties"":{""userInput"":{""type"":""string""}},""required"":[""userInput""]}",
+            LLMRole.Planner => @"{""type"":""object"",""properties"":{""userRequest"":{""type"":""string""}},""required"":[""userRequest""]}",
+            LLMRole.Universal => @"{""type"":""object"",""properties"":{""taskType"":{""type"":""string""},""content"":{""type"":""string""}},""required"":[""taskType"",""content""]}",
+            LLMRole.Evaluator => @"{""type"":""object"",""properties"":{""content"":{""type"":""string""}},""required"":[""content""]}",
+            LLMRole.Conversationalist => @"{""type"":""object"",""properties"":{""message"":{""type"":""string""}},""required"":[""message""]}",
             _ => @"{""type"":""object"",""properties"":{""input"":{""type"":""string""}},""required"":[""input""]}"
         };
     }

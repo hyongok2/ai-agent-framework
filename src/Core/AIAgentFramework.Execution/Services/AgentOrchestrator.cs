@@ -6,6 +6,7 @@ using AIAgentFramework.Execution.Models;
 using AIAgentFramework.LLM.Abstractions;
 using AIAgentFramework.LLM.Services.Conversation;
 using AIAgentFramework.LLM.Services.Evaluation;
+using AIAgentFramework.LLM.Services.IntentAnalysis;
 using AIAgentFramework.LLM.Services.Planning;
 
 namespace AIAgentFramework.Execution.Services;
@@ -187,7 +188,59 @@ public class AgentOrchestrator : IOrchestrator
         IAgentContext context,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        // 1. TaskPlanner 실행 - 의도 파악 및 계획 수립
+        // 1. IntentAnalyzer 실행 - 의도 파악 및 즉시 응답 가능 여부 판단
+        yield return StreamChunk.Status("🔍 의도 분석 중...");
+
+        var intentAnalyzer = _llmRegistry.GetFunction(LLMRole.IntentAnalyzer)
+            ?? throw new InvalidOperationException("IntentAnalyzer not registered");
+
+        var intentInput = new IntentAnalysisInput
+        {
+            UserInput = userInput,
+            ConversationHistory = context.Get<string>("HISTORY"),
+            Context = context.Get<string>("CONTEXT")
+        };
+
+        IntentAnalysisResult? intentResult = null;
+        await foreach (var chunk in ((IntentAnalyzerFunction)intentAnalyzer).ExecuteStreamAsync(intentInput, cancellationToken))
+        {
+            if (!string.IsNullOrEmpty(chunk.Content))
+            {
+                yield return StreamChunk.Text(chunk.Content);
+            }
+
+            if (chunk.IsFinal && chunk.ParsedResult != null)
+            {
+                intentResult = (IntentAnalysisResult)chunk.ParsedResult;
+            }
+        }
+
+        if (intentResult == null)
+        {
+            yield return StreamChunk.Error("의도 분석 실패");
+            yield return StreamChunk.Complete();
+            yield break;
+        }
+
+        // 2. 의도에 따른 라우팅
+        if (intentResult.IntentType == IntentType.Chat || intentResult.IntentType == IntentType.Question)
+        {
+            // 즉시 응답 가능 - DirectResponse 반환
+            if (!string.IsNullOrEmpty(intentResult.DirectResponse))
+            {
+                yield return StreamChunk.Text(intentResult.DirectResponse);
+            }
+            else
+            {
+                yield return StreamChunk.Text("응답을 생성할 수 없습니다.");
+            }
+
+            yield return StreamChunk.Complete("응답 완료");
+            yield break;
+        }
+
+        // 3. Task인 경우 - 계획 수립 필요
+        yield return StreamChunk.Status($"\n\n✅ 의도 파악 완료: {intentResult.TaskDescription}\n");
         yield return StreamChunk.Status("📋 계획 수립 중...");
 
         var planner = _llmRegistry.GetFunction(LLMRole.Planner)
@@ -222,26 +275,7 @@ public class AgentOrchestrator : IOrchestrator
             yield break;
         }
 
-        // 2. PlanType에 따른 라우팅
-        if (plan.Type == PlanType.SimpleResponse ||
-            plan.Type == PlanType.Information ||
-            plan.Type == PlanType.Clarification)
-        {
-            // 단순 응답/정보 제공/명확화 질문 → DirectResponse 스트리밍
-            if (!string.IsNullOrEmpty(plan.DirectResponse))
-            {
-                yield return StreamChunk.Text(plan.DirectResponse);
-            }
-            else
-            {
-                yield return StreamChunk.Text(plan.Summary);
-            }
-
-            yield return StreamChunk.Complete("응답 완료");
-            yield break;
-        }
-
-        // 3. ToolExecution 타입이지만 실행 불가능한 경우 에러 처리
+        // 4. 실행 불가능한 계획인 경우 에러 처리
         if (!plan.IsExecutable)
         {
             yield return StreamChunk.Error(plan.ExecutionBlocker ?? "계획 실행 불가");
@@ -251,7 +285,7 @@ public class AgentOrchestrator : IOrchestrator
 
         yield return StreamChunk.Status($"\n\n✅ 계획 수립 완료: {plan.Summary}\n");
 
-        // 4. 도구 실행 모드 (ToolExecution) → 기존 플로우
+        // 5. 계획 실행
         yield return StreamChunk.Status("⚙️ 계획 실행 중...\n");
 
         // PlanExecutor 실행 (스트리밍)
@@ -289,7 +323,7 @@ public class AgentOrchestrator : IOrchestrator
         yield return StreamChunk.Status($"\n\n✅ 계획 실행 완료\n");
         yield return StreamChunk.Status("🔍 결과 평가 중...\n");
 
-        // 5. Evaluator 실행 (스트리밍)
+        // 6. Evaluator 실행 (스트리밍)
         var evaluator = _llmRegistry.GetFunction(LLMRole.Evaluator)
             ?? throw new InvalidOperationException("Evaluator not registered");
 
@@ -318,7 +352,7 @@ public class AgentOrchestrator : IOrchestrator
 
         yield return StreamChunk.Status($"\n\n✅ 평가 완료 (점수: {(int)(evaluation?.QualityScore * 100 ?? 0)}점)\n");
 
-        // 6. ConversationFunction으로 사용자에게 친절하게 설명
+        // 7. ConversationFunction으로 사용자에게 친절하게 설명
         yield return StreamChunk.Status("\n💬 결과 설명 중...\n\n");
 
         var conversationalist = _llmRegistry.GetFunction(LLMRole.Conversationalist);

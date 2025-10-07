@@ -3,6 +3,7 @@ using AIAgentFramework.Core.Abstractions;
 using AIAgentFramework.LLM.Abstractions;
 using AIAgentFramework.LLM.Extensions;
 using AIAgentFramework.LLM.Models;
+using AIAgentFramework.LLM.Services.Universal;
 using AIAgentFramework.Tools.Abstractions;
 
 namespace AIAgentFramework.LLM.Services.Planning;
@@ -85,26 +86,67 @@ public class TaskPlannerFunction : LLMFunctionBase<PlanningInput, PlanningResult
         {
             foreach (var stepElement in stepsElement.EnumerateArray())
             {
+                // Parameters 파싱: 문자열 또는 객체 모두 허용
+                string parametersJson;
+                if (stepElement.TryGetProperty("parameters", out var paramsElement))
+                {
+                    parametersJson = paramsElement.ValueKind == JsonValueKind.String
+                        ? paramsElement.GetString() ?? "{}"
+                        : paramsElement.GetRawText(); // 객체면 그대로 JSON 문자열로
+                }
+                else
+                {
+                    parametersJson = "{}";
+                }
+
+                // ResponseGuide 파싱 (UniversalLLM 사용 시)
+                ResponseGuide? responseGuide = null;
+                if (stepElement.TryGetProperty("responseGuide", out var rgElement))
+                {
+                    responseGuide = new ResponseGuide
+                    {
+                        Instruction = rgElement.TryGetProperty("instruction", out var inst) ? inst.GetString() ?? "" : "",
+                        Format = rgElement.TryGetProperty("format", out var fmt) ? fmt.GetString() ?? "JSON" : "JSON",
+                        Style = rgElement.TryGetProperty("style", out var sty) ? sty.GetString() ?? "standard" : "standard",
+                        Constraints = rgElement.TryGetProperty("constraints", out var cons)
+                            ? cons.EnumerateArray().Select(c => c.GetString() ?? "").Where(s => !string.IsNullOrWhiteSpace(s)).ToList()
+                            : new List<string>(),
+                        OutputSchema = rgElement.TryGetProperty("outputSchema", out var schema) ? schema.GetString() : null,
+                        Examples = rgElement.TryGetProperty("examples", out var ex)
+                            ? ex.EnumerateArray().Select(e => e.GetString() ?? "").Where(s => !string.IsNullOrWhiteSpace(s)).ToList()
+                            : null
+                    };
+                }
+
                 var step = new TaskStep
                 {
                     StepNumber = stepElement.GetProperty("stepNumber").GetInt32(),
                     Description = stepElement.GetProperty("description").GetString() ?? string.Empty,
                     ToolName = stepElement.GetProperty("toolName").GetString() ?? string.Empty,
-                    Parameters = stepElement.GetProperty("parameters").GetString() ?? "{}",
+                    Parameters = parametersJson,
                     OutputVariable = stepElement.TryGetProperty("outputVariable", out var outVar)
                         ? outVar.GetString()
                         : null,
                     EstimatedSeconds = stepElement.TryGetProperty("estimatedSeconds", out var estSec)
                         ? estSec.GetInt32()
-                        : null
+                        : null,
+                    ResponseGuide = responseGuide
                 };
 
-                // DependsOn 파싱
+                // DependsOn 파싱 (숫자 또는 문자열 모두 허용)
                 if (stepElement.TryGetProperty("dependsOn", out var depsElement))
                 {
                     foreach (var dep in depsElement.EnumerateArray())
                     {
-                        step.DependsOn.Add(dep.GetInt32());
+                        if (dep.ValueKind == JsonValueKind.Number)
+                        {
+                            step.DependsOn.Add(dep.GetInt32());
+                        }
+                        else if (dep.ValueKind == JsonValueKind.String)
+                        {
+                            // 문자열이면 무시 (변수명이 들어온 경우)
+                            // dependsOn은 stepNumber만 유효하므로 숫자만 처리
+                        }
                     }
                 }
 
