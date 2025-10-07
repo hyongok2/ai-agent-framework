@@ -1,127 +1,43 @@
-# 입력 분석 프롬프트
+# Analysis
 
-당신은 입력 텍스트를 분석하고 해석하는 전문가입니다.
-
-## 현재 시각
+## Current Time
 {{CURRENT_TIME}}
 
-## 당신의 역할
-주어진 텍스트를 깊이 분석하여 의도, 핵심 정보, 감정, 모호성을 파악하세요.
-
-## 분석할 내용
+## Content
 ```
 {{CONTENT}}
 ```
 
-## 분석 목적
+## Purpose
 {{PURPOSE}}
 
-## 분석 초점 영역
-{{FOCUS_AREA}}
+{{#if FOCUS_AREA}}## Focus Area
+{{FOCUS_AREA}}{{/if}}
 
-## 분석 규칙
+## Task
 
-1. **의도 파악**: 텍스트의 주요 목적과 의도를 명확히 식별하세요
-2. **엔티티 추출**: 중요한 명사, 개체명, 키워드를 추출하세요
-3. **감정 분석**: 텍스트의 감정적 톤을 파악하세요 (positive, negative, neutral)
-4. **신뢰도 평가**: 분석 결과의 확실성을 0.0~1.0으로 평가하세요
-5. **모호성 식별**: 불명확하거나 해석이 필요한 부분을 지적하세요
+Analyze text deeply: intent, key info, sentiment, ambiguity.
 
-## 출력 형식
+**Rules:**
+- Identify main intent/purpose
+- Extract key entities (names, dates, keywords)
+- Determine sentiment (positive/negative/neutral)
+- Rate confidence 0.0-1.0
+- Flag ambiguities
 
-**반드시** 다음 JSON 형식으로 응답하세요:
-
+**Output JSON:**
 ```json
 {
-  "intent": "주요 의도 또는 목적 (한 문장)",
-  "entities": ["엔티티1", "엔티티2", "엔티티3"],
-  "sentiment": "positive, negative, 또는 neutral",
-  "confidence": 0.0에서 1.0 사이의 신뢰도,
-  "detailedAnalysis": "상세 분석 내용 (2-3 문장)",
-  "ambiguities": ["모호한 부분 1", "모호한 부분 2"]
-}
-```
-
-### 필드 설명
-
-- **intent**: 텍스트의 주요 목적이나 의도 (한 문장으로 요약)
-- **entities**: 추출된 핵심 정보 (사람, 장소, 날짜, 제품명 등)
-- **sentiment**: 감정적 톤 (positive/negative/neutral)
-- **confidence**: 분석 결과의 확실성 (0.0=불확실, 1.0=매우 확실)
-- **detailedAnalysis**: 텍스트에 대한 상세 분석 (선택적)
-- **ambiguities**: 명확화가 필요한 부분 목록 (빈 배열 가능)
-
-## 예시
-
-### 예시 1: 명확한 요청
-**입력**: "내일 오후 3시에 회의실 A를 예약해주세요"
-**출력**:
-```json
-{
-  "intent": "회의실 예약 요청",
-  "entities": ["내일", "오후 3시", "회의실 A"],
-  "sentiment": "neutral",
-  "confidence": 0.95,
-  "detailedAnalysis": "명확한 시간과 장소가 지정된 회의실 예약 요청입니다.",
-  "ambiguities": []
-}
-```
-
-### 예시 2: 모호한 요청
-**입력**: "파일 좀 보내줘"
-**출력**:
-```json
-{
-  "intent": "파일 전송 요청",
-  "entities": ["파일"],
-  "sentiment": "neutral",
-  "confidence": 0.4,
-  "detailedAnalysis": "파일 전송 요청이지만 어떤 파일인지, 누구에게 보낼지 명시되지 않았습니다.",
-  "ambiguities": [
-    "어떤 파일을 보내야 하는지 불명확",
-    "수신자가 지정되지 않음",
-    "전송 방법이 명시되지 않음"
-  ]
-}
-```
-
-### 예시 3: 감정 포함
-**입력**: "이 기능이 계속 작동하지 않아서 정말 답답합니다. 빨리 고쳐주세요."
-**출력**:
-```json
-{
-  "intent": "버그 수정 요청",
-  "entities": ["기능", "버그"],
-  "sentiment": "negative",
-  "confidence": 0.9,
-  "detailedAnalysis": "사용자가 반복적인 기능 오류로 인해 불만을 표현하며 신속한 해결을 요청하고 있습니다.",
-  "ambiguities": [
-    "어떤 기능인지 구체적으로 명시되지 않음"
-  ]
-}
-```
-
-### 예시 4: 복잡한 요청
-**입력**: "지난주 금요일부터 월요일 사이에 생성된 보고서 중에서 판매 실적이 100만원 이상인 것만 필터링해서 엑셀로 내보내주세요"
-**출력**:
-```json
-{
-  "intent": "조건부 보고서 데이터 추출 및 내보내기",
-  "entities": ["지난주 금요일", "월요일", "보고서", "판매 실적", "100만원", "엑셀"],
-  "sentiment": "neutral",
+  "intent": "Main purpose (one sentence)",
+  "entities": ["entity1", "entity2"],
+  "sentiment": "positive|negative|neutral",
   "confidence": 0.85,
-  "detailedAnalysis": "특정 기간 내 생성된 보고서 중 판매 실적 조건을 만족하는 데이터를 엑셀 형식으로 추출하는 복합 요청입니다.",
-  "ambiguities": [
-    "지난주의 정확한 날짜 범위 확인 필요"
-  ]
+  "detailedAnalysis": "2-3 sentences",
+  "ambiguities": ["unclear point 1"]
 }
 ```
 
-## 중요 주의사항
-
-- **정확성 우선**: 확실하지 않으면 신뢰도를 낮추고 모호성에 명시하세요
-- **간결함 유지**: intent는 한 문장으로 요약하세요
-- **구체성**: 엔티티는 텍스트에 실제로 나타난 것만 추출하세요
-- **유효한 JSON만**: 응답은 반드시 파싱 가능한 JSON이어야 합니다
-
-이제 주어진 텍스트를 분석하고 JSON 형식으로 응답하세요.
+**Important:**
+- Lower confidence if uncertain
+- Extract only entities actually in text
+- Must output valid JSON only
