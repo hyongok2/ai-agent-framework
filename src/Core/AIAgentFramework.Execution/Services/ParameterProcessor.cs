@@ -40,18 +40,21 @@ public class ParameterProcessor : IParameterProcessor
             };
         }
 
-        // 파라미터가 이미 완전하게 제공되었는지 확인
-        if (IsCompleteParameter(rawParameters))
+        // 1단계: 변수 치환 수행 (AgentContext의 Variables 사용)
+        var substitutedParameters = SubstituteVariables(rawParameters, agentContext);
+
+        // 2단계: 파라미터가 완전한지 확인
+        if (IsCompleteParameter(substitutedParameters))
         {
             // placeholder가 없고 유효한 파라미터면 그대로 사용
             return new ParameterProcessingResult
             {
                 IsSuccess = true,
-                ProcessedParameters = rawParameters
+                ProcessedParameters = substitutedParameters
             };
         }
 
-        // placeholder가 있거나 불완전하면 LLM으로 생성
+        // 3단계: placeholder가 있거나 불완전하면 LLM으로 생성
         onStreamChunk?.Invoke($"\n🔧 파라미터 생성 중 (Tool: {targetName})...\n");
 
         return await GenerateParametersAsync(
@@ -201,5 +204,44 @@ public class ParameterProcessor : IParameterProcessor
             IsSuccess = true,
             ProcessedParameters = paramGenResult.Parameters
         };
+    }
+
+    /// <summary>
+    /// 파라미터 문자열의 {변수명} placeholder를 AgentContext의 Variables 값으로 치환
+    /// 예: {"content": "{output}"} → {"content": "실제 출력 값"}
+    /// </summary>
+    private string? SubstituteVariables(string? parameters, IAgentContext agentContext)
+    {
+        if (string.IsNullOrWhiteSpace(parameters))
+        {
+            return parameters;
+        }
+
+        var result = parameters;
+
+        // {변수명} 패턴을 찾아서 치환
+        var placeholderPattern = @"\{(\w+)\}";
+        var matches = System.Text.RegularExpressions.Regex.Matches(parameters, placeholderPattern);
+
+        foreach (System.Text.RegularExpressions.Match match in matches)
+        {
+            var variableName = match.Groups[1].Value;
+            var placeholder = match.Value; // {variableName}
+
+            // AgentContext에서 변수 값 가져오기
+            if (agentContext.Variables.TryGetValue(variableName, out var value))
+            {
+                var valueStr = value?.ToString() ?? string.Empty;
+
+                // JSON 문자열 내부에서 치환할 때는 이스케이프 처리
+                valueStr = System.Text.Json.JsonSerializer.Serialize(valueStr);
+                valueStr = valueStr.Trim('"'); // 양쪽 따옴표 제거
+
+                result = result.Replace(placeholder, valueStr);
+            }
+            // 변수가 없으면 placeholder를 그대로 둠 (LLM이 생성하도록)
+        }
+
+        return result;
     }
 }

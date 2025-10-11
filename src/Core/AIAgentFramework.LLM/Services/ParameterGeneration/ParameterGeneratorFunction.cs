@@ -71,10 +71,23 @@ public class ParameterGeneratorFunction : LLMFunctionBase<ParameterGenerationInp
             var jsonDoc = JsonSerializer.Deserialize<JsonDocument>(cleanedResponse);
             var root = jsonDoc?.RootElement ?? throw new InvalidOperationException("응답 파싱 실패");
 
+            // Parameters는 문자열 또는 객체 모두 허용
+            string parametersJson;
+            if (root.TryGetProperty("parameters", out var paramsElement))
+            {
+                parametersJson = paramsElement.ValueKind == JsonValueKind.String
+                    ? paramsElement.GetString() ?? "{}"
+                    : paramsElement.GetRawText(); // 객체면 JSON 문자열로 직렬화
+            }
+            else
+            {
+                parametersJson = "{}";
+            }
+
             return new ParameterGenerationResult
             {
                 ToolName = root.GetProperty("toolName").GetString() ?? string.Empty,
-                Parameters = root.GetProperty("parameters").GetString() ?? string.Empty,
+                Parameters = parametersJson,
                 Reasoning = root.TryGetProperty("reasoning", out var reasoningProp)
                     ? reasoningProp.GetString()
                     : null,

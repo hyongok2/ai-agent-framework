@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(Stop-Process -Name \"AIAgentFramework.ChatBot\" -Force -ErrorAction SilentlyContinue)"
+      "Bash(Stop-Process -Name \"AIAgentFramework.ChatBot\" -Force -ErrorAction SilentlyContinue)",
+      "Bash(dotnet build:*)"
     ],
     "deny": [],
     "ask": []

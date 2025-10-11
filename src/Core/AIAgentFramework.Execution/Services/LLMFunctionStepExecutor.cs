@@ -44,10 +44,13 @@ public class LLMFunctionStepExecutor : IStepExecutor
                 var mergedParams = new Dictionary<string, object>(llmContext.Parameters);
 
                 // JSON 객체의 각 속성을 실제 값으로 변환해서 추가
+                // LLM Functions는 UPPER_SNAKE_CASE 키를 기대하므로 변환
+                // taskType → TASK_TYPE, content → CONTENT
                 foreach (var property in jsonDoc.RootElement.EnumerateObject())
                 {
                     var value = ConvertJsonElement(property.Value);
-                    mergedParams[property.Name] = value;
+                    var key = ConvertToUpperSnakeCase(property.Name);
+                    mergedParams[key] = value;
                 }
 
                 llmContext = new LLMContext
@@ -183,5 +186,32 @@ public class LLMFunctionStepExecutor : IStepExecutor
                 .ToDictionary(p => p.Name, p => ConvertJsonElement(p.Value)),
             _ => element.ToString()
         };
+    }
+
+    /// <summary>
+    /// camelCase 또는 PascalCase를 UPPER_SNAKE_CASE로 변환
+    /// taskType → TASK_TYPE, content → CONTENT
+    /// </summary>
+    private static string ConvertToUpperSnakeCase(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+
+        var result = new System.Text.StringBuilder();
+
+        for (int i = 0; i < input.Length; i++)
+        {
+            var c = input[i];
+
+            // 대문자를 만나면 앞에 언더스코어 추가 (첫 글자 제외)
+            if (char.IsUpper(c) && i > 0)
+            {
+                result.Append('_');
+            }
+
+            result.Append(char.ToUpperInvariant(c));
+        }
+
+        return result.ToString();
     }
 }

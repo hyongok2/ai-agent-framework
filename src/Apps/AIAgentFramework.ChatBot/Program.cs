@@ -23,17 +23,38 @@ using AIAgentFramework.Tools.BuiltIn.FileWriter;
 using AIAgentFramework.Tools.BuiltIn.PowerShellExecutor;
 using AIAgentFramework.Tools.BuiltIn.TextTransformer;
 using AIAgentFramework.Tools.Models;
+using Microsoft.Extensions.Configuration;
+
+// appsettings.json 로드 (환경 변수 오버라이드 지원)
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+    .AddEnvironmentVariables() // 환경 변수가 우선순위 높음
+    .Build();
+
+// Ollama 설정 읽기
+var ollamaBaseUrl = configuration["Ollama:BaseUrl"] ?? "http://localhost:11434";
+var ollamaModel = configuration["Ollama:Model"] ?? "llama3.2";
+var ollamaApiKey = Environment.GetEnvironmentVariable("OLLAMA_API_KEY"); // 보안: 환경 변수에서만 읽기
 
 try { Console.Clear(); } catch { }
 Console.WriteLine("==========================================================");
 Console.WriteLine("🤖 AI Agent Framework ChatBot");
+Console.WriteLine("==========================================================");
+Console.WriteLine($"Ollama URL: {ollamaBaseUrl}");
+Console.WriteLine($"Model: {ollamaModel}");
+if (!string.IsNullOrEmpty(ollamaApiKey))
+{
+    Console.WriteLine($"API Key: {ollamaApiKey.Substring(0, Math.Min(8, ollamaApiKey.Length))}***");
+}
 Console.WriteLine("==========================================================\n");
 
 // 로거 설정
 var logger = new FileLogger("logs");
 
 // 기본 인프라 설정
-var ollama = new OllamaProvider("http://192.168.25.50:11434", "gpt-oss:20b");
+var ollama = new OllamaProvider(ollamaBaseUrl, ollamaModel, ollamaApiKey);
 var templatesPath = @"c:\src\work\ai\ai-agent-framework\src\Core\AIAgentFramework.LLM\Templates";
 var promptRegistry = new PromptRegistry(templatesPath);
 
@@ -52,7 +73,7 @@ var llmRegistry = new LLMRegistry();
 var llmOptions = new LLMFunctionOptions
 {
     EnableStreaming = true,
-    ModelName = "gpt-oss:20b"
+    ModelName = ollamaModel,
 };
 
 // Core LLM Functions - New Architecture (IntentAnalyzer → Planner → UniversalLLM)

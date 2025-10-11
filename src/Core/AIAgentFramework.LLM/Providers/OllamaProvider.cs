@@ -6,25 +6,34 @@ namespace AIAgentFramework.LLM.Providers;
 
 /// <summary>
 /// Ollama LLM Provider
-/// 로컬 Ollama 서버와 통신
+/// 로컬 Ollama 서버 또는 Ollama Cloud와 통신
 /// </summary>
 public class OllamaProvider : ILLMProvider
 {
     private readonly HttpClient _httpClient;
     private readonly string _baseUrl;
     private readonly string _defaultModel;
+    private readonly string? _apiKey;
 
     public string ProviderName => "Ollama";
     public IReadOnlyList<string> SupportedModels { get; }
 
-    public OllamaProvider(string baseUrl, string defaultModel = "llama3.1:8b")
+    public OllamaProvider(string baseUrl, string defaultModel = "gpt-oss:120b", string? apiKey = null)
     {
         _baseUrl = baseUrl.TrimEnd('/');
         _defaultModel = defaultModel;
+        _apiKey = apiKey;
         _httpClient = new HttpClient
         {
             Timeout = TimeSpan.FromMinutes(5)
         };
+
+        // API 키가 있으면 Authorization 헤더 추가 (Ollama Cloud용)
+        if (!string.IsNullOrWhiteSpace(_apiKey))
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _apiKey);
+        }
 
         SupportedModels = new[] { defaultModel };
     }
