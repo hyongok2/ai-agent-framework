@@ -25,12 +25,3 @@ Respond as a helpful AI assistant.
 
 **Response Format:**
 Natural text response (no JSON needed).
-
-For metadata if needed:
-```json
-{
-  "Response": "응답 메시지",
-  "Tone": "friendly|professional|casual",
-  "Metadata": {}
-}
-```

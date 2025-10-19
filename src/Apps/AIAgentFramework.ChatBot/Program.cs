@@ -77,7 +77,7 @@ var llmOptions = new LLMFunctionOptions
 };
 
 // Core LLM Functions - New Architecture (IntentAnalyzer → Planner → UniversalLLM)
-var intentAnalyzer = new IntentAnalyzerFunction(promptRegistry, ollama, llmOptions, logger);
+var intentAnalyzer = new IntentAnalyzerFunction(promptRegistry, ollama, toolRegistry, llmRegistry, llmOptions, logger);
 var planner = new TaskPlannerFunction(promptRegistry, ollama, toolRegistry, llmRegistry, llmOptions, logger);
 var universalLLM = new UniversalLLMFunction(promptRegistry, ollama, llmOptions, logger);
 var parameterGenerator = new ParameterGeneratorFunction(promptRegistry, ollama, llmOptions, logger);

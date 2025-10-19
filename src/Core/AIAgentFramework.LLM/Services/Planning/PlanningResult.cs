@@ -44,4 +44,10 @@ public class PlanningResult
     /// 계획 생성 시 고려된 제약사항
     /// </summary>
     public List<string> Constraints { get; init; } = new();
+
+    /// <summary>
+    /// 최종 사용자 응답 생성을 위한 ResponseGuide
+    /// 계획 실행 완료 후 Universal LLM이 사용자 질문에 답변하기 위해 사용
+    /// </summary>
+    public Universal.ResponseGuide? FinalResponseGuide { get; init; }
 }

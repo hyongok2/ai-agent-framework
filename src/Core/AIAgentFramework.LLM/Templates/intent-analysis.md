@@ -9,9 +9,15 @@
 {{#if CONTEXT}}## Context
 {{CONTEXT}}{{/if}}
 
+{{#if TOOLS}}## Available Tools
+{{TOOLS}}{{/if}}
+
+{{#if LLM_FUNCTIONS}}## Available LLM Functions
+{{LLM_FUNCTIONS}}{{/if}}
+
 ## Task
 
-Analyze user intent and respond immediately if possible.
+Analyze user intent and respond immediately if possible. Use the available tools and LLM functions information to better determine if the request requires task execution (Task) or can be answered directly (Chat/Question).
 
 **Intent Types:**
 1. **Chat**: Greeting, thanks, casual conversation

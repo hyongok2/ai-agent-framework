@@ -3,6 +3,7 @@ using AIAgentFramework.Core.Abstractions;
 using AIAgentFramework.LLM.Abstractions;
 using AIAgentFramework.LLM.Extensions;
 using AIAgentFramework.LLM.Models;
+using AIAgentFramework.Tools.Abstractions;
 
 namespace AIAgentFramework.LLM.Services.IntentAnalysis;
 
@@ -12,13 +13,20 @@ namespace AIAgentFramework.LLM.Services.IntentAnalysis;
 /// </summary>
 public class IntentAnalyzerFunction : LLMFunctionBase<IntentAnalysisInput, IntentAnalysisResult>
 {
+    private readonly IToolRegistry _toolRegistry;
+    private readonly ILLMRegistry _llmRegistry;
+
     public IntentAnalyzerFunction(
         IPromptRegistry promptRegistry,
         ILLMProvider llmProvider,
+        IToolRegistry toolRegistry,
+        ILLMRegistry llmRegistry,
         LLMFunctionOptions? options = null,
         ILogger? logger = null)
         : base(promptRegistry, llmProvider, options, logger)
     {
+        _toolRegistry = toolRegistry ?? throw new ArgumentNullException(nameof(toolRegistry));
+        _llmRegistry = llmRegistry ?? throw new ArgumentNullException(nameof(llmRegistry));
     }
 
     public override LLMRole Role => LLMRole.IntentAnalyzer;
@@ -49,7 +57,9 @@ public class IntentAnalyzerFunction : LLMFunctionBase<IntentAnalysisInput, Inten
         {
             ["USER_INPUT"] = input.UserInput,
             ["HISTORY"] = input.ConversationHistory ?? string.Empty,
-            ["CONTEXT"] = input.Context ?? string.Empty
+            ["CONTEXT"] = input.Context ?? string.Empty,
+            ["TOOLS"] = _toolRegistry.GetToolDescriptionsForLLM(),
+            ["LLM_FUNCTIONS"] = _llmRegistry.GetFunctionDescriptionsForLLM()
         };
     }
 

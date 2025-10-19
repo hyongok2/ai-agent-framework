@@ -55,6 +55,7 @@ public class PlanExecutor : IExecutor
         var totalStopwatch = Stopwatch.StartNew();
         var stepResults = new List<StepExecutionResult>();
 
+        // ✅ 각 단계를 실행하되, 실패해도 계속 진행 (부분 실행 결과 수집)
         foreach (var step in input.Plan.Steps.OrderBy(s => s.StepNumber))
         {
             var stepResult = await ExecuteStepAsync(step, input.UserRequest, agentContext, onStreamChunk, cancellationToken);
@@ -63,37 +64,55 @@ public class PlanExecutor : IExecutor
             // 단계 완료 콜백 호출 (스트리밍 출력용)
             onStepCompleted?.Invoke(stepResult);
 
-            // 실행 실패 시 중단
-            if (!stepResult.IsSuccess)
-            {
-                totalStopwatch.Stop();
-                var completedAt = DateTimeOffset.UtcNow;
-                return new ExecutionResult
-                {
-                    IsSuccess = false,
-                    Steps = stepResults,
-                    ErrorMessage = $"Step {step.StepNumber} 실행 실패: {stepResult.ErrorMessage}",
-                    TotalExecutionTimeMs = totalStopwatch.ElapsedMilliseconds,
-                    StartedAt = startedAt,
-                    CompletedAt = completedAt
-                };
-            }
-
-            // 성공 시 결과를 AgentContext에 저장 (다음 단계에서 사용)
-            if (!string.IsNullOrEmpty(step.OutputVariable) && stepResult.Output != null)
+            // ✅ 성공한 경우에만 결과를 AgentContext에 저장 (다음 단계에서 사용)
+            if (stepResult.IsSuccess && !string.IsNullOrEmpty(step.OutputVariable) && stepResult.Output != null)
             {
                 agentContext.Set(step.OutputVariable, stepResult.Output);
             }
+
+            // ❌ 실패해도 중단하지 않고 계속 진행 (기존 코드 제거)
         }
 
         totalStopwatch.Stop();
         var finalCompletedAt = DateTimeOffset.UtcNow;
 
+        // ✅ 실행 상태 결정
+        var successCount = stepResults.Count(s => s.IsSuccess);
+        var failureCount = stepResults.Count(s => !s.IsSuccess);
+
+        ExecutionStatus status;
+        bool isSuccess;
+        string? summary;
+
+        if (failureCount == 0)
+        {
+            // 모든 단계 성공
+            status = ExecutionStatus.Success;
+            isSuccess = true;
+            summary = $"{stepResults.Count}개 단계 모두 성공적으로 완료";
+        }
+        else if (successCount == 0)
+        {
+            // 모든 단계 실패
+            status = ExecutionStatus.Failed;
+            isSuccess = false;
+            summary = $"{failureCount}개 단계 모두 실패";
+        }
+        else
+        {
+            // 부분 성공
+            status = ExecutionStatus.PartialSuccess;
+            isSuccess = true; // ✅ PartialSuccess도 IsSuccess=true (Evaluator 호출 위해)
+            summary = $"{successCount}개 성공, {failureCount}개 실패 (부분 실행)";
+        }
+
         return new ExecutionResult
         {
-            IsSuccess = true,
+            IsSuccess = isSuccess,
+            Status = status,
             Steps = stepResults,
-            Summary = $"{stepResults.Count}개 단계 모두 성공적으로 완료",
+            Summary = summary,
+            ErrorMessage = failureCount > 0 ? $"{failureCount}개 단계 실패" : null,
             TotalExecutionTimeMs = totalStopwatch.ElapsedMilliseconds,
             StartedAt = startedAt,
             CompletedAt = finalCompletedAt
